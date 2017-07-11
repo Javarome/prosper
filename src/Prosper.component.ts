@@ -53,11 +53,3 @@ export class Prosper {
     this.memory.refresh();
   }
 }
-
-@NgModule({
-  imports: [BrowserModule, FormsModule],
-  declarations: [Prosper, ProsperOutput, ProsperInput, ProsperGraph],
-  bootstrap: [Prosper]
-})
-export class ProsperModule {
-}
