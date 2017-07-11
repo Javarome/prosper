@@ -1,0 +1,10 @@
+<h1>Prosper</h1>
+<form (submit)="submit()">
+  <label for="sample-type">Sample</label> <select id="sample-type" ng-model="[(sampleType)]">
+  <option *ngFor="let item of items" [value]="item.value">{{item.label}}</option>
+</select> <label for="prosper-input">Input</label> <input id="prosper-input" name="value" [(ngModel)]="value"> with
+  <label for="speed">delay</label> <input id="speed" name="speed" [(ngModel)]="speed" type="number">
+  <input type="submit">
+</form>
+<button (click)="refresh()">Refresh</button>
+<button (click)="reset()">Reset</button>
