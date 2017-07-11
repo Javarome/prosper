@@ -1,5 +1,7 @@
 import {Component, ElementRef, Input} from "@angular/core";
 
+import {Prosper} from "./Prosper.component.ts";
+
 @Component({
   selector: 'prosper-graph',
   template: '<div></div>'
@@ -10,13 +12,13 @@ export class ProsperGraph {
   private latestNodes: Array;
 
   @Input()
-  private prosper;
+  private prosper: Prosper;
 
   constructor(private $element: ElementRef) {
   }
 
   log(msg) {
-    console.log(msg);
+    console.log(`ProsperMemory: ${msg}`);
   }
 
   ngOnInit() {

@@ -1,12 +1,14 @@
 import {Component, ElementRef, Input} from "@angular/core";
 
+import {Prosper} from "./Prosper.component.ts";
+
 @Component({
   selector: 'prosper-output',
   template: '<output></output>'
 })
 export class ProsperOutput {
   @Input()
-  private prosper;
+  private prosper: Prosper;
 
   private SEP;
   private latestInput;
