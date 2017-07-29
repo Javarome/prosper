@@ -35,8 +35,8 @@ export class Prosper {
     this.memory = memory;
   }
 
-  input(value) {
-    this.memory.input(value);
+  input(value: any, nodeFactory) {
+    this.memory.input(value, nodeFactory);
     this.outputs.forEach(output => output.input(value));
   }
 
@@ -51,5 +51,9 @@ export class Prosper {
 
   refresh() {
     this.memory.refresh();
+  }
+
+  getState() {
+    return this.memory.toJSON();
   }
 }

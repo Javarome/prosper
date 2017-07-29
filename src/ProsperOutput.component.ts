@@ -25,7 +25,7 @@ export class ProsperOutput {
   }
 
   input(value) {
-    this.latestInput += this.SEP + value;
+    this.latestInput += this.SEP + value.label;
     this.SEP = ' ';
   }
 

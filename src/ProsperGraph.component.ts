@@ -2,6 +2,26 @@ import {Component, ElementRef, Input} from "@angular/core";
 
 import {Prosper} from "./Prosper.component.ts";
 
+interface SigmaNode {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  size: number;
+}
+
+export interface ProsperMemoryNode extends SigmaNode {
+  concept: boolean;
+}
+
+export interface NodeFactory {
+  create(input: any): ProsperMemoryNode;
+
+  merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode): ProsperMemoryNode;
+}
+
+
+
 @Component({
   selector: 'prosper-graph',
   template: '<div></div>'
@@ -24,22 +44,15 @@ export class ProsperGraph {
   ngOnInit() {
     this.prosper.setMemory(this);
 
+    const s = this.s = new sigma();
     const containerId = this.$element.nativeElement.id;
-    const s = this.s = new sigma({
-      container: containerId,
-      renderer: {
-        container: document.getElementById(containerId),
-        type: 'canvas'
-      },
-      settings: {
-        minNodeSize: 1,
-        maxNodeSize: 16,
-      },
-      drawingProperties: {
-        defaultLabelBGColor: "lightgreen"
-      }
+    s.addRenderer({
+      container: document.getElementById(containerId),
+      type: 'canvas'
     });
     s.settings({
+      minNodeSize: 1,
+        maxNodeSize: 16,
       //enableEdgeHovering: true,
       //edgeHoverSizeRatio: 2,
       defaultNodeColor: 'steelblue',
@@ -73,9 +86,12 @@ export class ProsperGraph {
     this.latestNodes = [];
   }
 
-  input(inputValue) {
+  toJSON() {
+    return {nodes: this.g.nodes(), edges: this.g.edges()};
+  }
+
+  input(node: ProsperMemoryNode, nodeFactory: NodeFactory) {
     const newNodes = [];
-    const node = this.newNode(inputValue);
     try {
       this.addNode(node);
       this.addEdges(this.latestNodes, node);
@@ -85,11 +101,9 @@ export class ProsperGraph {
         const existingEdge = this.g.edges().filter(edge => edge.id === this.edgeId(latestNode, node));
         if (existingEdge.length == 1) {
           this.log('Edge ' + this.edgeId(latestNode, node) + ' already exists');
-          const conceptNode = this.newNode(latestNode.label + node.label);
+          const conceptNode = nodeFactory.merge(latestNode, node);
           try {
-            conceptNode.color = 'green';
             this.addNode(conceptNode);
-            conceptNode.concept = true;
           } catch (e) {
             this.log(e.message);
           }
@@ -173,16 +187,6 @@ export class ProsperGraph {
     fromNodes.forEach(fromNode => {
       this.addEdge(fromNode, toNode);
     });
-  }
-
-  newNode(value) {
-    return {
-      id: value,
-      label: value,
-      x: Math.random(),
-      y: Math.random(),
-      size: 1
-    };
   }
 
   newEdge(fromNode, toNode) {
