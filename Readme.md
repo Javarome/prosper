@@ -2,6 +2,4 @@
 
 Prosper aims to automate things the way you think about them.
 
-<iframe src="https://9ffdcf1d66d944a2bca0e47eed8d1f0d.codepen.website/>
- <p>Your browser does not support iframes.</p>
-</iframe>
+Check out a [demo](https://9ffdcf1d66d944a2bca0e47eed8d1f0d.codepen.website).
