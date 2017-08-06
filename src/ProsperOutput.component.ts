@@ -7,17 +7,19 @@ import {Prosper} from "./Prosper.component.ts";
   template: '<output></output>'
 })
 export class ProsperOutput {
-  @Input()
-  private prosper: Prosper;
+  @Input() private prosper: Prosper;
 
   private SEP;
   private latestInput;
+  private outputElem;
 
   constructor(private $element: ElementRef) {
   }
 
   reset() {
-    console.log('output reset');
+    while (this.outputElem.firstChild) {
+      this.outputElem.removeChild(this.outputElem.firstChild);
+    }
   }
 
   ngOnInit() {
