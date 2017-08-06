@@ -9,18 +9,13 @@ interface SigmaNode {
   y: number;
   size: number;
 }
-
 export interface ProsperMemoryNode extends SigmaNode {
   concept: boolean;
 }
-
 export interface NodeFactory {
   create(input: any): ProsperMemoryNode;
-
   merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode): ProsperMemoryNode;
 }
-
-
 
 @Component({
   selector: 'prosper-graph',
@@ -29,10 +24,10 @@ export interface NodeFactory {
 export class ProsperGraph {
   private s: any;
   private g: any;
-  private latestNodes: Array;
+  private minNodeSize: number;
+  private latestNodes = [];
 
-  @Input()
-  private prosper: Prosper;
+  @Input() private prosper: Prosper;
 
   constructor(private $element: ElementRef) {
   }
@@ -50,26 +45,43 @@ export class ProsperGraph {
       container: document.getElementById(containerId),
       type: 'canvas'
     });
+    this.minNodeSize = 0.5;
     s.settings({
-      minNodeSize: 1,
-        maxNodeSize: 16,
-      //enableEdgeHovering: true,
-      //edgeHoverSizeRatio: 2,
+      minNodeSize: this.minNodeSize,
+      maxNodeSize: 16,
       defaultNodeColor: 'steelblue',
-      edgeColor: 'default',
-      defaultEdgeColor: '#ec5148',
-      // defaultEdgeColor: '#ccc',
-      // defaultEdgeArrow: 'source'
-      minArrowSize: 10
-    });
-    //s.bind(s.events, (e) => {
-    //    this.log('sigma.js event: ' + e.type);
-    //});
 
-    /*const noOverlapConfig = {
-     nodeMargin: 3.0,
-     scaleNodes: 1.3
-     };*/
+      //defaultEdgeHoverColor: 'red',
+      // Edge
+      defaultEdgeColor: 'lightblue',
+      defaultEdgeType: 'curvedArrow',
+      enableEdgeHovering: true,
+      edgeHoverPrecision: 20,
+      edgeHoverHighlightNodes: 'circle',
+      edgeHoverSizeRatio: 1,
+      edgeHoverExtremities: true,
+      edgeColor: "default",
+      edgeHoverColor: 'red',
+      minArrowSize: 10,
+      minEdgeSize: 0.1,
+      maxEdgeSize: 1,
+
+      // Edge label
+      drawEdgeLabels: true,
+      edgeLabelColor: 'default',
+      defaultEdgeLabelColor: 'gray',
+      defaultEdgeLabelActiveColor: 'black',
+      defaultEdgeLabelSize: 12,
+      edgeLabelSize: 'proportional',              // Available values: fixed, proportional
+      edgeLabelAlignment: 'auto',          // Available values: auto, horizontal
+      edgeLabelSizePowRatio: 1,
+      edgeLabelThreshold: 1,
+//            defaultEdgeHoverLabelBGColor: '#002147',
+      edgeLabelHoverBGColor: 'default',
+      edgeLabelHoverShadow: 'default',
+      edgeLabelHoverShadowColor: '#000',
+      // defaultEdgeArrow: 'source'
+    });
     const forceAtlas2Config = {
       worker: true,
       autoStop: true,
@@ -78,22 +90,27 @@ export class ProsperGraph {
       gravity: 3
     };
     const listener = s.configForceAtlas2(forceAtlas2Config);
-    /*listener.bind('start stop interpolate', (event) => {
-     this.log('sigma.js layout: ' + event.type);
-     });*/
 
     const g = this.g = s.graph;
-    this.latestNodes = [];
   }
 
   toJSON() {
     return {nodes: this.g.nodes(), edges: this.g.edges()};
   }
 
+  activated(node: ProsperMemoryNode) {
+    node.size += 1;
+  }
+
+  deactivated(node: ProsperMemoryNode) {
+    node.size = node.size < this.minNodeSize ? this.minNodeSize : node.size - 0.1;
+  }
+
   input(node: ProsperMemoryNode, nodeFactory: NodeFactory) {
     const newNodes = [];
     try {
       this.addNode(node);
+      this.activated(node);
       this.addEdges(this.latestNodes, node);
     } catch (e) {
       this.log(e.message);
@@ -104,6 +121,7 @@ export class ProsperGraph {
           const conceptNode = nodeFactory.merge(latestNode, node);
           try {
             this.addNode(conceptNode);
+            this.activated(conceptNode);
           } catch (e) {
             this.log(e.message);
           }
@@ -111,12 +129,22 @@ export class ProsperGraph {
           this.latestNodes.push(conceptNode);
           newNodes.push(conceptNode);
         } else {
+          this.activated(node);
           this.addEdges(this.latestNodes, node);
         }
       });
     }
     newNodes.push(node);
     this.latestNodes = newNodes;
+    this.latestNodes = [];
+
+    this.g.nodes().forEach(node => {
+      this.deactivated(node);
+      if (node.size > .75) {
+        this.latestNodes.push(node);
+      }
+    });
+
     this.refresh();
     this.predict();
   }
@@ -147,23 +175,20 @@ export class ProsperGraph {
 
   reset() {
     this.g.clear();
-    this.refresh();
+    this.refresh(300);
   }
 
-  refresh() {
+  refresh(delay = this.g.nodes().length * 60) {
     this.s.killForceAtlas2();
-    this.g.nodes().forEach(node => {
-      if (this.isLatest(node)) node.size = 2; else node.size = 1;
-    });
     this.s.startForceAtlas2();
-    setTimeout(() => this.s.stopForceAtlas2(), this.g.nodes().length * 60);
+    setTimeout(() => this.s.stopForceAtlas2(), delay);
   }
 
-  edgeId(source, target) {
+  edgeId(source: ProsperMemoryNode, target: ProsperMemoryNode) {
     return source.id + '-' + target.id;
   }
 
-  addNode(node) {
+  addNode(node: ProsperMemoryNode) {
     this.log('Adding node ' + node.id);
     try {
       this.g.addNode(node);
@@ -173,7 +198,7 @@ export class ProsperGraph {
     }
   }
 
-  addEdge(fromNode, toNode) {
+  addEdge(fromNode: ProsperMemoryNode, toNode: ProsperMemoryNode) {
     const edge = this.newEdge(fromNode, toNode);
     try {
       this.g.addEdge(edge);
@@ -182,19 +207,20 @@ export class ProsperGraph {
     }
   }
 
-  addEdges(fromNodes, toNode) {
+  addEdges(fromNodes, toNode: ProsperMemoryNode) {
     this.log('Addings link from ' + JSON.stringify(fromNodes) + ' to ' + toNode.id);
     fromNodes.forEach(fromNode => {
       this.addEdge(fromNode, toNode);
     });
   }
 
-  newEdge(fromNode, toNode) {
+  newEdge(fromNode: ProsperMemoryNode, toNode: ProsperMemoryNode) {
     return {
       id: this.edgeId(fromNode, toNode),
+      label: (this.g.edges().length + 1) + '',
       source: fromNode.id,
-      target: toNode.id,
-      type: 'curvedArrow'
+      size: 1,
+      target: toNode.id
     };
   }
 }
