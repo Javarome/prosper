@@ -39,8 +39,10 @@ class AutoIterator<T> {
   }
   iterate(sampling: <T>[], params) {
     let i = 0;
-    sampling.forEach(node => {
-      setTimeout(() => this.prosper.input(node, this.nodeFactory), params.speed * i++);
+    sampling.forEach(input => {
+      if (input) {
+        setTimeout(() => this.prosper.input(input, this.nodeFactory), params.speed * i++);
+      }
     });
   }
 }
@@ -56,10 +58,12 @@ class ManualIterator<T> {
     this.next();
   }
   next() {
-    this.prosper.input(this.sampling[this.i], this.nodeFactory);
+    const input = this.sampling[this.i];
+    if (input) {
+      this.prosper.input(input, this.nodeFactory);
+    }
     this.i++;
     this.hasNext = this.i < this.sampling.length;
-    console.log('next is ', this.sampling[this.i])
   }
 }
 
@@ -157,10 +161,17 @@ export class ProsperInput {
     }
   }
 
+  replay() {
+    const state = this.prosper.getState();
+    const inputs = state.nodes.map(node => node.concept ? null : this.sampleType.nodeFactory.create(node.id));
+    this.prosper.reset();
+    this.iterate(inputs);
+  }
+
   upload() {
     const file = document.getElementById('memoryFile').files[0];
     const memoryFileReader = new FileReader();
-    memoryFileReader.onloadend = e => {
+    memoryFileReader.onloadend = (e: Event) => {
       const memoryData = JSON.parse(e.target.result);
       this.prosper.setState(memoryData);
     };
@@ -168,12 +179,15 @@ export class ProsperInput {
   }
 
   submit() {
-    const nodeFactory = this.sampleType.nodeFactory;
-    const sampling = this.sampleType.sample(this.value, nodeFactory);
+    const sampling = this.sampleType.sample(this.value, this.sampleType.nodeFactory);
     // this.prosper.input(Date.now().toString());
-    this.iteration = this.iterationType.create(this.prosper, nodeFactory);
-    this.iteration.iterate(sampling, this);
+    this.iterate(sampling);
     this.value = "";
     this.$element.nativeElement.querySelector("input").focus();
+  }
+
+  iterate(sampling) {
+    this.iteration = this.iterationType.create(this.prosper, this.sampleType.nodeFactory);
+    this.iteration.iterate(sampling, this);
   }
 }
