@@ -1,11 +1,33 @@
-<h1>Prosper</h1>
+<h1><a href="https://github.com/Javarome/prosper" target="_blank">Prosper</a></h1>
 <form (submit)="submit()">
-  <label for="sample-type">Sample</label> <select id="sample-type" name="sampleType" [(ngModel)]="sampleType">
-  <option *ngFor="let item of items" [ngValue]="item">{{item.label}}</option>
-</select> <label for="prosper-input">Input</label> <input id="prosper-input" name="value" [(ngModel)]="value"> with
-  <label for="speed">delay</label> <input id="speed" name="speed" [(ngModel)]="speed" type="number">
-  <input type="submit">
+  <fieldset>
+    <legend>Input</legend>
+    <label for="prosper-input">Input</label> <input id="prosper-input" name="value" [(ngModel)]="value">
+    <input type="submit"> <label for="sample-type">sampled as</label>
+    <select id="sample-type" name="sampleType" [(ngModel)]="sampleType">
+      <option *ngFor="let item of sampleTypes" [ngValue]="item">{{item.label}}</option>
+    </select>
+  </fieldset>
+  <fieldset>
+    <legend>Iteration</legend>
+    <select id="iteration-type" name="iterationType" [(ngModel)]="iterationType">
+      <option *ngFor="let item of iterationTypes" [ngValue]="item">{{item.label}}</option>
+    </select>
+    <div *ngIf="iterationType==autoIteration">
+      <label for="speed">delay</label> <input id="speed" name="speed" [(ngModel)]="speed" type="number">
+    </div>
+    <button
+        *ngIf="iterationType==manualIteration"
+        type="button"
+        (click)="iteration.next()"
+        [disabled]="!iteration || !iteration.hasNext"
+    >Next
+    </button>
+  </fieldset>
 </form>
-<button (click)="refresh()">Refresh</button>
-<button (click)="reset()">Reset</button>
-<button (click)="save()">Save</button>
+<fieldset>
+  <legend>Memory</legend>
+  <button (click)="refresh()">Refresh</button>
+  <button (click)="reset()">Reset</button>
+  <button (click)="save()">Save</button>
+</fieldset>
