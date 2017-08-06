@@ -56,4 +56,8 @@ export class Prosper {
   getState() {
     return this.memory.toJSON();
   }
+
+  setState(data) {
+    this.memory.fromJSON(data);
+  }
 }

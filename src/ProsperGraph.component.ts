@@ -98,6 +98,11 @@ export class ProsperGraph {
     return {nodes: this.g.nodes(), edges: this.g.edges()};
   }
 
+  fromJSON(data) {
+    this.g.read(data);
+    this.refresh();
+  }
+
   activated(node: ProsperMemoryNode) {
     node.size += 1;
   }

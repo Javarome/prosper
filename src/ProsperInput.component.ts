@@ -37,7 +37,6 @@ class AutoIterator<T> {
     this.prosper = prosper;
     this.nodeFactory = nodeFactory;
   }
-
   iterate(sampling: <T>[], params) {
     let i = 0;
     sampling.forEach(node => {
@@ -51,13 +50,11 @@ class ManualIterator<T> {
     this.prosper = prosper;
     this.nodeFactory = nodeFactory;
   }
-
   iterate(sampling: <T>[]) {
     this.sampling = sampling;
     this.i = 0;
     this.next();
   }
-
   next() {
     this.prosper.input(this.sampling[this.i], this.nodeFactory);
     this.i++;
@@ -71,14 +68,17 @@ class ManualIterator<T> {
   templateUrl: "/src/ProsperInput.component.html"
 })
 export class ProsperInput {
+  iteration;
+  memoryFile;
+
   private value;
 
   private speed: number;
   private sampleCharsType;
   private sampleWordsType;
-  iteration;
-  private sampleType;
   private sampleTypes;
+  private sampleType;
+
   private autoIteration;
   private iterationTypes;
   private iterationType;
@@ -155,6 +155,16 @@ export class ProsperInput {
       elem.click();
       document.body.removeChild(elem);
     }
+  }
+
+  upload() {
+    const file = document.getElementById('memoryFile').files[0];
+    const memoryFileReader = new FileReader();
+    memoryFileReader.onloadend = e => {
+      const memoryData = JSON.parse(e.target.result);
+      this.prosper.setState(memoryData);
+    };
+    memoryFileReader.readAsText(file);
   }
 
   submit() {
