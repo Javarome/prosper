@@ -1,5 +1,6 @@
 <h1><a href="https://github.com/Javarome/prosper" target="_blank">Prosper</a></h1>
 <form (submit)="submit()">
+
   <fieldset>
     <legend>Input</legend>
     <label for="prosper-input">Input</label> <input id="prosper-input" name="value" [(ngModel)]="value">
@@ -8,6 +9,7 @@
       <option *ngFor="let item of sampleTypes" [ngValue]="item">{{item.label}}</option>
     </select>
   </fieldset>
+
   <fieldset>
     <legend>Iteration</legend>
     <select id="iteration-type" name="iterationType" [(ngModel)]="iterationType">
@@ -30,4 +32,6 @@
   <button (click)="refresh()">Refresh</button>
   <button (click)="reset()">Reset</button>
   <button (click)="save()">Save</button>
+  or <input name="memoryFile" type="file" id="memoryFile" value="Upload"> to
+  <button (click)="upload()">Upload</button>
 </fieldset>
