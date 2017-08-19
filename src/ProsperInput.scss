@@ -1,0 +1,11 @@
+#prosperInput {
+  @include overboard();
+  background: whitesmoke;
+  line-height: initial;
+  padding: 1em;
+  width: 30%;
+
+  h1 {
+    margin-top: 0;
+  }
+}
