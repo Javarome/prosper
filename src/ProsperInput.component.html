@@ -26,12 +26,14 @@
     >Next
     </button>
   </fieldset>
+
 </form>
 <fieldset>
   <legend>Memory</legend>
   <button (click)="refresh()">Refresh</button>
-  <button (click)="reset()">Reset</button>
-  <button (click)="save()">Save</button>
+  <button (click)="reset()" [disabled]="empty">Reset</button>
+  <button (click)="replay()" [disabled]="empty">Replay</button>
+  <button (click)="save()" [disabled]="empty">Save</button>
   or <input name="memoryFile" type="file" id="memoryFile" value="Upload"> to
   <button (click)="upload()">Upload</button>
 </fieldset>

@@ -82,6 +82,7 @@ export class ProsperInput {
   private sampleWordsType;
   private sampleTypes;
   private sampleType;
+  private empty: boolean = true;
 
   private autoIteration;
   private iterationTypes;
@@ -137,6 +138,7 @@ export class ProsperInput {
 
   reset() {
     this.prosper.reset();
+    this.empty = true;
   }
 
   refresh() {
@@ -173,6 +175,7 @@ export class ProsperInput {
     const memoryFileReader = new FileReader();
     memoryFileReader.onloadend = (e: Event) => {
       const memoryData = JSON.parse(e.target.result);
+      this.empty = memoryData.nodes.length <= 0;
       this.prosper.setState(memoryData);
     };
     memoryFileReader.readAsText(file);
@@ -182,6 +185,7 @@ export class ProsperInput {
     const sampling = this.sampleType.sample(this.value, this.sampleType.nodeFactory);
     // this.prosper.input(Date.now().toString());
     this.iterate(sampling);
+    this.empty = false;
     this.value = "";
     this.$element.nativeElement.querySelector("input").focus();
   }
