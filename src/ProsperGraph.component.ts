@@ -180,12 +180,13 @@ export class ProsperGraph {
 
   reset() {
     this.g.clear();
-    this.refresh(300);
+    this.refresh();
   }
 
-  refresh(delay = this.g.nodes().length * 60) {
+  refresh() {
     this.s.killForceAtlas2();
     this.s.startForceAtlas2();
+    const delay = Math.max(this.g.nodes().length * 60, 300);
     setTimeout(() => this.s.stopForceAtlas2(), delay);
   }
 
