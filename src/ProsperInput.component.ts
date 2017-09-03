@@ -5,13 +5,17 @@ import {NodeFactory, ProsperMemoryNode} from "./ProsperGraph.component.ts";
 
 class DefaultNodeFactory implements NodeFactory {
   create(value: any): ProsperMemoryNode {
-    return {
+    const n = {
       id: value,
       label: value,
       x: Math.random(),
       y: Math.random(),
       size: 1
     };
+    n.toString = function () {
+      return this.id + '(' + this.size + ')';
+    }
+    return n;
   }
 }
 class CharNodeFactory extends DefaultNodeFactory {
