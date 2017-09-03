@@ -24,7 +24,10 @@ export interface NodeFactory {
 export class ProsperGraph {
   private s: any;
   private g: any;
-  private minNodeSize: number;
+  private minNodeSize: number = 0.5;
+  private activationGain: number = 1;
+  private deactivationLoss: number = 0.4;
+  private activatedMin: number = 1;
   private latestNodes = [];
 
   @Input() private prosper: Prosper;
@@ -36,6 +39,16 @@ export class ProsperGraph {
     console.log(`ProsperMemory: ${msg}`);
   }
 
+  static nodesString(nodes) {
+    let s = '[';
+    let sep = '';
+    nodes.forEach(node => {
+      s += sep + node.toString();
+      sep = ', ';
+    });
+    return s + ']';
+  }
+
   ngOnInit() {
     this.prosper.setMemory(this);
 
@@ -45,7 +58,6 @@ export class ProsperGraph {
       container: document.getElementById(containerId),
       type: 'canvas'
     });
-    this.minNodeSize = 0.5;
     s.settings({
       minNodeSize: this.minNodeSize,
       maxNodeSize: 16,
@@ -76,7 +88,7 @@ export class ProsperGraph {
       edgeLabelAlignment: 'auto',          // Available values: auto, horizontal
       edgeLabelSizePowRatio: 1,
       edgeLabelThreshold: 1,
-//            defaultEdgeHoverLabelBGColor: '#002147',
+      //            defaultEdgeHoverLabelBGColor: '#002147',
       edgeLabelHoverBGColor: 'default',
       edgeLabelHoverShadow: 'default',
       edgeLabelHoverShadowColor: '#000',
@@ -89,9 +101,7 @@ export class ProsperGraph {
       scaleRatio: 30,
       gravity: 3
     };
-    const listener = s.configForceAtlas2(forceAtlas2Config);
-
-    const g = this.g = s.graph;
+    this.g = s.graph;
   }
 
   toJSON() {
@@ -104,51 +114,48 @@ export class ProsperGraph {
   }
 
   activated(node: ProsperMemoryNode) {
-    node.size += 1;
+    this.g.nodes(node.id).size += this.activationGain;
+    this.log(`anodes=${ProsperGraph.nodesString(this.g.nodes())}`);
   }
 
   deactivated(node: ProsperMemoryNode) {
-    node.size = node.size < this.minNodeSize ? this.minNodeSize : node.size - 0.1;
+    this.g.nodes(node.id).size = Math.max(node.size - this.deactivationLoss, this.minNodeSize);
+    this.log(`dnodes=${ProsperGraph.nodesString(this.g.nodes())}`);
   }
 
   input(node: ProsperMemoryNode, nodeFactory: NodeFactory) {
-    const newNodes = [];
     try {
       this.addNode(node);
-      this.activated(node);
       this.addEdges(this.latestNodes, node);
     } catch (e) {
-      this.log(e.message);
+      this.log('Could not add: ' + e.message);
       this.latestNodes.forEach(latestNode => {
         const existingEdge = this.g.edges().filter(edge => edge.id === this.edgeId(latestNode, node));
         if (existingEdge.length == 1) {
-          this.log('Edge ' + this.edgeId(latestNode, node) + ' already exists');
+          this.log(`Edge ${this.edgeId(latestNode, node)} already exists`);
           const conceptNode = nodeFactory.merge(latestNode, node);
           try {
             this.addNode(conceptNode);
-            this.activated(conceptNode);
           } catch (e) {
-            this.log(e.message);
+            this.log('Could not add concept: ' + e.message);
           }
           this.addEdge(node, conceptNode);
-          this.latestNodes.push(conceptNode);
-          newNodes.push(conceptNode);
+          node = conceptNode;
         } else {
-          this.activated(node);
           this.addEdges(this.latestNodes, node);
         }
       });
     }
-    newNodes.push(node);
-    this.latestNodes = newNodes;
-    this.latestNodes = [];
+    this.activated(node);
 
+    this.latestNodes = [];
     this.g.nodes().forEach(node => {
       this.deactivated(node);
-      if (node.size > .75) {
+      if (node.size > this.activatedMin) {
         this.latestNodes.push(node);
       }
     });
+    this.log(`latestNodes=${ProsperGraph.nodesString(this.latestNodes)}`);
 
     this.refresh();
     this.predict();
@@ -214,7 +221,7 @@ export class ProsperGraph {
   }
 
   addEdges(fromNodes, toNode: ProsperMemoryNode) {
-    this.log('Addings link from ' + JSON.stringify(fromNodes) + ' to ' + toNode.id);
+    this.log(`Adding link from ${ProsperGraph.nodesString(fromNodes)} to ${toNode.id}`);
     fromNodes.forEach(fromNode => {
       this.addEdge(fromNode, toNode);
     });
