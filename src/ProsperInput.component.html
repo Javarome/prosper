@@ -23,6 +23,7 @@
         type="button"
         (click)="iteration.next()"
         [disabled]="!iteration || !iteration.hasNext"
+        title="Click to process next node"
     >Next
     </button>
   </fieldset>
@@ -30,6 +31,14 @@
 </form>
 <fieldset>
   <legend>Memory</legend>
+  <label for="min-node-size">Minimum node size</label>
+  <input id="min-node-size" type="number" step="0.1" [(ngModel)]="prosper.memory.minNodeSize" (change)="replay()">
+  <label for="activation-gain">Activation gain</label>
+  <input id="activation-gain" type="number" step="0.1" [(ngModel)]="prosper.memory.activationGain" (change)="replay()">
+  <label for="deactivation-loss">Deactivation loss</label>
+  <input id="deactivation-loss" type="number" step="0.1" [(ngModel)]="prosper.memory.deactivationLoss" (change)="replay()">
+  <label for="activated-min">Activated minimum</label>
+  <input id="activated-min" type="number" step="0.1" [(ngModel)]="prosper.memory.activatedMin" (change)="replay()">
   <button (click)="refresh()">Refresh</button>
   <button (click)="reset()" [disabled]="empty">Reset</button>
   <button (click)="replay()" [disabled]="empty">Replay</button>

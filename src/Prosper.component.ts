@@ -1,6 +1,4 @@
-import {Component, NgModule, VERSION} from "@angular/core";
-import {FormsModule} from "@angular/forms";
-import {BrowserModule} from "@angular/platform-browser";
+import {Component} from "@angular/core";
 import {ProsperGraph} from "./ProsperGraph.component.ts";
 import {ProsperInput} from "./ProsperInput.component.ts";
 
@@ -15,9 +13,10 @@ import {ProsperOutput} from "./ProsperOutput.component.ts";
   `,
 })
 export class Prosper {
+  memory: ProsperGraph;
+
   private inputs = [];
   private outputs = [];
-  private memory: ProsperGraph;
 
   log(msg) {
     console.log(`Prosper: ${msg}`);
@@ -33,6 +32,10 @@ export class Prosper {
 
   setMemory(memory: ProsperGraph) {
     this.memory = memory;
+  }
+
+  getMemory(): ProsperGraph {
+    return this.memory;
   }
 
   input(value: any, nodeFactory) {
@@ -53,11 +56,11 @@ export class Prosper {
     this.memory.refresh();
   }
 
-  getState() {
+  getState(): Object {
     return this.memory.toJSON();
   }
 
-  setState(data) {
+  setState(data: string) {
     this.memory.fromJSON(data);
   }
 }

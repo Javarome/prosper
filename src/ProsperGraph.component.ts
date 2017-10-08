@@ -22,12 +22,13 @@ export interface NodeFactory {
   template: '<div></div>'
 })
 export class ProsperGraph {
+  minNodeSize: number = 0.5;
+  activationGain: number = 0.3;
+  deactivationLoss: number = 0.1;
+  activatedMin: number = 1;
+
   private s: any;
   private g: any;
-  private minNodeSize: number = 0.5;
-  private activationGain: number = 1;
-  private deactivationLoss: number = 0.4;
-  private activatedMin: number = 1;
   private latestNodes = [];
 
   @Input() private prosper: Prosper;
@@ -114,13 +115,15 @@ export class ProsperGraph {
   }
 
   activated(node: ProsperMemoryNode) {
+    const nodeStr = node.toString();
     this.g.nodes(node.id).size += this.activationGain;
-    this.log(`anodes=${ProsperGraph.nodesString(this.g.nodes())}`);
+    this.log(`nodes after activation of ${nodeStr}=${ProsperGraph.nodesString(this.g.nodes())}`);
   }
 
   deactivated(node: ProsperMemoryNode) {
+    const nodeStr = node.toString();
     this.g.nodes(node.id).size = Math.max(node.size - this.deactivationLoss, this.minNodeSize);
-    this.log(`dnodes=${ProsperGraph.nodesString(this.g.nodes())}`);
+    this.log(`nodes after deactivation of ${nodeStr}=${ProsperGraph.nodesString(this.g.nodes())}`);
   }
 
   input(node: ProsperMemoryNode, nodeFactory: NodeFactory) {

@@ -1,4 +1,4 @@
-import {Component, ElementRef, Input} from "@angular/core";
+import {Component, ElementRef, Input, OnInit} from "@angular/core";
 
 import {Prosper} from "./Prosper.component.ts";
 import {NodeFactory, ProsperMemoryNode} from "./ProsperGraph.component.ts";
@@ -75,7 +75,7 @@ class ManualIterator<T> {
   selector: "prosper-input",
   templateUrl: "/src/ProsperInput.component.html"
 })
-export class ProsperInput {
+export class ProsperInput implements OnInit {
   iteration;
   memoryFile;
 
@@ -168,7 +168,7 @@ export class ProsperInput {
   }
 
   replay() {
-    const state = this.prosper.getState();
+    const state: Object = this.prosper.getState();
     const inputs = state.nodes.map(node => node.concept ? null : this.sampleType.nodeFactory.create(node.id));
     this.prosper.reset();
     this.iterate(inputs);
