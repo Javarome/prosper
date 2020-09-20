@@ -1,32 +1,12 @@
-$inputWidth: 20em;
+@import "ProsperInput.component";
+@import "ProsperOutput.component";
 
-* {
-  box-sizing: border-box;
-}
-
-$boardHeight: 70vh;
-@mixin overboard() {
-  position: fixed;
-  top: 0;
-  display: block;
-  overflow: auto;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid gray;
-  box-shadow: 2px 2px 5px gray;
-  height: $boardHeight;
-}
-
-@import "ProsperInput.component.scss";
-@import "ProsperOutput.component.scss";
-body {
-  margin: 0;
-  font-family: "Helvetica", sans-serif;
-}
-
-prosper {
-  display: block;
+:host {
+  display: flex;
+  flex-direction: row;
   width: 100%;
-  text-align: center;
-  vertical-align: middle;
-  line-height: 100vh;
+}
+
+prosper-input {
+  width: 30%;
 }

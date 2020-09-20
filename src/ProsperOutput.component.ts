@@ -4,7 +4,8 @@ import {Prosper} from "./Prosper.component";
 
 @Component({
   selector: 'prosper-output',
-  template: '<output></output>'
+  template: '<output></output>',
+  styleUrls: ['ProsperOutput.component']
 })
 export class ProsperOutput implements OnInit, AfterContentInit {
   @Input() private prosper: Prosper;

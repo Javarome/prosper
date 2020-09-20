@@ -5,7 +5,6 @@
     <legend>Input</legend>
     <label for="prosper-input">Input</label> <input [(ngModel)]="value" id="prosper-input" name="value"> <input
       type="submit">
-
     <label for="sample-type">sampled as</label> <select id="sample-type" name="sampleType" [(ngModel)]="sampleType">
     <option *ngFor="let item of sampleTypes" [ngValue]="item">{{item.label}}</option>
   </select>
@@ -13,6 +12,7 @@
 
   <fieldset>
     <legend>Iteration</legend>
+    <label for="iteration-type">Type</label>
     <select id="iteration-type" name="iterationType" [(ngModel)]="iterationType">
       <option *ngFor="let item of iterationTypes" [ngValue]="item">{{item.label}}</option>
     </select>

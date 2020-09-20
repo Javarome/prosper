@@ -1,5 +1,9 @@
+@import "variables";
+@import "mixins";
+
 #prosperInput {
-  @include overboard();
+  @include overboard($boardHeight);
+
   background: whitesmoke;
   line-height: initial;
   padding: 1em;

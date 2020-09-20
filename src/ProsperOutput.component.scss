@@ -1,4 +1,7 @@
-prosper-output {
+@import "variables";
+@import "mixins";
+
+:host {
   position: fixed;
   display: block;
   max-height: 100vh;
@@ -7,6 +10,7 @@ prosper-output {
   bottom: 0;
   line-height: initial;
 }
+
 #prosper-graph {
   @include overboard();
 

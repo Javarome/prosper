@@ -6,8 +6,8 @@ import {ProsperOutput} from "./ProsperOutput.component";
 @Component({
   selector: 'prosper',
   template: `
-    <prosper-output [prosper]="this"></prosper-output>
     <prosper-input [prosper]="this" id="prosperInput"></prosper-input>
+    <prosper-output [prosper]="this"></prosper-output>
     <prosper-graph [prosper]="this" input="prosperInput" id="prosper-graph"></prosper-graph>
   `,
   styleUrls: ['Prosper.component.scss']

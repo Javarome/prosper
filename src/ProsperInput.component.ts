@@ -18,6 +18,7 @@ class DefaultNodeFactory implements NodeFactory {
     return n;
   }
 }
+
 class CharNodeFactory extends DefaultNodeFactory {
   merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode) {
     const conceptNode = this.create(node1.label + node2.label);
@@ -36,7 +37,15 @@ class WordNodeFactory extends DefaultNodeFactory {
   }
 }
 
-class AutoIterator<T> {
+interface Iterator<T> {
+  hasNext?: boolean;
+
+  iterate(sampling: Array<T>, params?: {});
+
+  next?();
+}
+
+class AutoIterator<T> implements Iterator<T> {
   private prosper: Prosper;
   private readonly nodeFactory: NodeFactory;
 
@@ -55,9 +64,9 @@ class AutoIterator<T> {
   }
 }
 
-class ManualIterator<T> {
+class ManualIterator<T> implements Iterator<T> {
   private prosper: Prosper;
-  private nodeFactory: NodeFactory;
+  private readonly nodeFactory: NodeFactory;
   private sampling: Array<T>;
   private i: number;
   private hasNext: boolean;
@@ -83,41 +92,63 @@ class ManualIterator<T> {
   }
 }
 
+enum IterationType {
+  manual = 'manual', automatic = 'auto'
+}
+
+interface IterationChoice {
+  value: IterationType;
+  label: string;
+
+  create(prosper: Prosper, nodeFactory): Iterator
+}
+
+enum SampleType {
+  chars = 'chars',
+  words = 'words'
+}
+
+interface SampleChoice {
+  value: SampleType;
+  label: string;
+  sample: (input, nodeFactory) => [];
+  nodeFactory: NodeFactory
+}
+
 @Component({
   selector: "prosper-input",
-  templateUrl: "ProsperInput.component.html"
+  templateUrl: "ProsperInput.component.html",
+  styleUrls: ['ProsperInput.component.scss']
 })
 export class ProsperInput implements OnInit {
-  iteration;
+  iteration: Iterator;
   memoryFile;
 
-  private value;
+  value;
 
-  private speed: number;
-  private sampleCharsType;
-  private sampleWordsType;
-  private sampleTypes;
-  private sampleType;
-  private empty: boolean = true;
-
-  private autoIteration;
-  private iterationTypes;
-  private iterationType;
-  private manualIteration;
-
-  @Input() private prosper: Prosper;
+  speed: number;
+  sampleTypes: SampleChoice[];
+  sampleType: SampleChoice;
+  empty: boolean = true;
+  autoIteration: IterationChoice;
+  iterationTypes;
+  iterationType: IterationChoice;
+  manualIteration: IterationChoice;
+  @Input() prosper: Prosper;
+  private readonly sampleCharsType: SampleChoice;
+  private readonly sampleWordsType: SampleChoice;
 
   constructor(private $element: ElementRef) {
     this.value = "";
     this.speed = 0;
     this.sampleCharsType = {
-      value: "chars",
+      value: SampleType.chars,
       label: "Chars",
       sample: (input, nodeFactory) => input.split("").map(sample => nodeFactory.create(sample)),
       nodeFactory: new CharNodeFactory()
     };
     this.sampleWordsType = {
-      value: "words",
+      value: SampleType.words,
       label: "Words",
       sample: (input, nodeFactory) => input.split(" ").map(sample => nodeFactory.create(sample)),
       nodeFactory: new WordNodeFactory()
@@ -126,14 +157,14 @@ export class ProsperInput implements OnInit {
     this.sampleType = this.sampleCharsType;
 
     this.autoIteration = {
-      value: 'auto',
+      value: IterationType.automatic,
       label: 'Automatic',
       create(prosper: Prosper, nodeFactory) {
         return new AutoIterator<string>(prosper, nodeFactory);
       }
     };
     this.manualIteration = {
-      value: 'manual',
+      value: IterationType.manual,
       label: 'Manual',
       create(prosper: Prosper, nodeFactory) {
         return new ManualIterator<string>(prosper, nodeFactory);
@@ -167,8 +198,7 @@ export class ProsperInput implements OnInit {
     const filename = 'prosper-memory.json';
     if (window.navigator.msSaveOrOpenBlob) {
       window.navigator.msSaveBlob(stateBlob, filename);
-    }
-    else {
+    } else {
       var elem = window.document.createElement('a');
       elem.href = window.URL.createObjectURL(stateBlob);
       elem.download = filename;
