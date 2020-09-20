@@ -1,12 +1,12 @@
-import {Component, ElementRef, Input} from "@angular/core";
+import {AfterContentInit, Component, ElementRef, Input, OnInit} from "@angular/core";
 
-import {Prosper} from "./Prosper.component.ts";
+import {Prosper} from "./Prosper.component";
 
 @Component({
   selector: 'prosper-output',
   template: '<output></output>'
 })
-export class ProsperOutput {
+export class ProsperOutput implements OnInit, AfterContentInit {
   @Input() private prosper: Prosper;
 
   private SEP;

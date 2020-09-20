@@ -1,7 +1,7 @@
 import {Component, ElementRef, Input, OnInit} from "@angular/core";
 
-import {Prosper} from "./Prosper.component.ts";
-import {NodeFactory, ProsperMemoryNode} from "./ProsperGraph.component.ts";
+import {Prosper} from "./Prosper.component";
+import {NodeFactory, ProsperMemoryNode} from "./ProsperGraph.component";
 
 class DefaultNodeFactory implements NodeFactory {
   create(value: any): ProsperMemoryNode {
@@ -37,10 +37,14 @@ class WordNodeFactory extends DefaultNodeFactory {
 }
 
 class AutoIterator<T> {
-  constructor(prosper: Prosper, nodeFactory) {
+  private prosper: Prosper;
+  private readonly nodeFactory: NodeFactory;
+
+  constructor(prosper: Prosper, nodeFactory: NodeFactory) {
     this.prosper = prosper;
     this.nodeFactory = nodeFactory;
   }
+
   iterate(sampling: <T>[], params) {
     let i = 0;
     sampling.forEach(input => {
@@ -52,15 +56,23 @@ class AutoIterator<T> {
 }
 
 class ManualIterator<T> {
-  constructor(prosper: Prosper, nodeFactory) {
+  private prosper: Prosper;
+  private nodeFactory: NodeFactory;
+  private sampling: Array<T>;
+  private i: number;
+  private hasNext: boolean;
+
+  constructor(prosper: Prosper, nodeFactory: NodeFactory) {
     this.prosper = prosper;
     this.nodeFactory = nodeFactory;
   }
-  iterate(sampling: <T>[]) {
+
+  iterate(sampling: Array<T>) {
     this.sampling = sampling;
     this.i = 0;
     this.next();
   }
+
   next() {
     const input = this.sampling[this.i];
     if (input) {
@@ -91,7 +103,6 @@ export class ProsperInput implements OnInit {
   private autoIteration;
   private iterationTypes;
   private iterationType;
-  private autoIteration;
   private manualIteration;
 
   @Input() private prosper: Prosper;
@@ -102,7 +113,7 @@ export class ProsperInput implements OnInit {
     this.sampleCharsType = {
       value: "chars",
       label: "Chars",
-      sample: (input, nodeFactory) => input.split("").map(sample => nodeFactory.create(sample))
+      sample: (input, nodeFactory) => input.split("").map(sample => nodeFactory.create(sample)),
       nodeFactory: new CharNodeFactory()
     };
     this.sampleWordsType = {

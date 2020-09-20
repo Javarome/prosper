@@ -3,11 +3,12 @@
 
   <fieldset>
     <legend>Input</legend>
-    <label for="prosper-input">Input</label> <input id="prosper-input" name="value" [(ngModel)]="value">
-    <input type="submit"> <label for="sample-type">sampled as</label>
-    <select id="sample-type" name="sampleType" [(ngModel)]="sampleType">
-      <option *ngFor="let item of sampleTypes" [ngValue]="item">{{item.label}}</option>
-    </select>
+    <label for="prosper-input">Input</label> <input [(ngModel)]="value" id="prosper-input" name="value"> <input
+      type="submit">
+
+    <label for="sample-type">sampled as</label> <select id="sample-type" name="sampleType" [(ngModel)]="sampleType">
+    <option *ngFor="let item of sampleTypes" [ngValue]="item">{{item.label}}</option>
+  </select>
   </fieldset>
 
   <fieldset>
@@ -16,7 +17,7 @@
       <option *ngFor="let item of iterationTypes" [ngValue]="item">{{item.label}}</option>
     </select>
     <div *ngIf="iterationType==autoIteration">
-      <label for="speed">delay</label> <input id="speed" name="speed" [(ngModel)]="speed" type="number">
+      <label for="speed">delay</label> <input [(ngModel)]="speed" id="speed" name="speed" type="number">
     </div>
     <button
         *ngIf="iterationType==manualIteration"
@@ -31,18 +32,17 @@
 </form>
 <fieldset>
   <legend>Memory</legend>
-  <label for="min-node-size">Minimum node size</label>
-  <input id="min-node-size" type="number" step="0.1" [(ngModel)]="prosper.memory.minNodeSize" (change)="replay()">
-  <label for="activation-gain">Activation gain</label>
-  <input id="activation-gain" type="number" step="0.1" [(ngModel)]="prosper.memory.activationGain" (change)="replay()">
-  <label for="deactivation-loss">Deactivation loss</label>
-  <input id="deactivation-loss" type="number" step="0.1" [(ngModel)]="prosper.memory.deactivationLoss" (change)="replay()">
-  <label for="activated-min">Activated minimum</label>
-  <input id="activated-min" type="number" step="0.1" [(ngModel)]="prosper.memory.activatedMin" (change)="replay()">
+  <label for="min-node-size">Minimum node size</label> <input (change)="replay()"
+    [(ngModel)]="prosper.memory.minNodeSize" id="min-node-size" step="0.1" type="number"> <label for="activation-gain">Activation
+  gain</label> <input (change)="replay()" [(ngModel)]="prosper.memory.activationGain" id="activation-gain" step="0.1"
+    type="number"> <label for="deactivation-loss">Deactivation loss</label> <input (change)="replay()"
+    [(ngModel)]="prosper.memory.deactivationLoss" id="deactivation-loss" step="0.1" type="number"> <label
+    for="activated-min">Activated minimum</label> <input (change)="replay()" [(ngModel)]="prosper.memory.activatedMin"
+    id="activated-min" step="0.1" type="number">
   <button (click)="refresh()">Refresh</button>
   <button (click)="reset()" [disabled]="empty">Reset</button>
   <button (click)="replay()" [disabled]="empty">Replay</button>
   <button (click)="save()" [disabled]="empty">Save</button>
-  or <input name="memoryFile" type="file" id="memoryFile" value="Upload"> to
+  or <input id="memoryFile" name="memoryFile" type="file" value="Upload"> to
   <button (click)="upload()">Upload</button>
 </fieldset>

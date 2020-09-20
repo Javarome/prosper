@@ -3,6 +3,7 @@ $inputWidth: 20em;
 * {
   box-sizing: border-box;
 }
+
 $boardHeight: 70vh;
 @mixin overboard() {
   position: fixed;
@@ -15,11 +16,11 @@ $boardHeight: 70vh;
   height: $boardHeight;
 }
 
-@import "src/ProsperInput.component";
-@import "src/ProsperOutput.component";
+@import "ProsperInput.component.scss";
+@import "ProsperOutput.component.scss";
 body {
   margin: 0;
-  font-family: "Helvetica";
+  font-family: "Helvetica", sans-serif;
 }
 
 prosper {

@@ -1,6 +1,6 @@
 import {Component, ElementRef, Input} from "@angular/core";
 
-import {Prosper} from "./Prosper.component.ts";
+import {Prosper} from "./Prosper.component";
 
 interface SigmaNode {
   id: string;

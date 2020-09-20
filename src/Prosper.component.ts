@@ -1,16 +1,16 @@
 import {Component} from "@angular/core";
-import {ProsperGraph} from "./ProsperGraph.component.ts";
-import {ProsperInput} from "./ProsperInput.component.ts";
-
-import {ProsperOutput} from "./ProsperOutput.component.ts";
+import {ProsperGraph} from "./ProsperGraph.component";
+import {ProsperInput} from "./ProsperInput.component";
+import {ProsperOutput} from "./ProsperOutput.component";
 
 @Component({
   selector: 'prosper',
   template: `
     <prosper-output [prosper]="this"></prosper-output>
-    <prosper-input  [prosper]="this" id="prosperInput"></prosper-input>
-    <prosper-graph  [prosper]="this" input="prosperInput" id="prosper-graph"></prosper-graph>
+    <prosper-input [prosper]="this" id="prosperInput"></prosper-input>
+    <prosper-graph [prosper]="this" input="prosperInput" id="prosper-graph"></prosper-graph>
   `,
+  styleUrls: ['Prosper.component.scss']
 })
 export class Prosper {
   memory: ProsperGraph;
