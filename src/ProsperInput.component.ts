@@ -45,7 +45,7 @@ class AutoIterator<T> {
     this.nodeFactory = nodeFactory;
   }
 
-  iterate(sampling: <T>[], params) {
+  iterate(sampling: Array<T>, params) {
     let i = 0;
     sampling.forEach(input => {
       if (input) {
@@ -85,7 +85,7 @@ class ManualIterator<T> {
 
 @Component({
   selector: "prosper-input",
-  templateUrl: "/src/ProsperInput.component.html"
+  templateUrl: "ProsperInput.component.html"
 })
 export class ProsperInput implements OnInit {
   iteration;
