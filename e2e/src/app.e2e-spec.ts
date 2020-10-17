@@ -8,9 +8,9 @@ describe('workspace-project App', () => {
     page = new AppPage();
   });
 
-  it('should display welcome message', () => {
+  it('should display input', () => {
     page.navigateTo();
-    expect(page.getTitleText()).toEqual('prosper2 app is running!');
+    expect(page.getInputLabelText()).toEqual('Input');
   });
 
   afterEach(async () => {
