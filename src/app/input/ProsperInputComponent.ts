@@ -1,7 +1,7 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
+import {NodeFactory, ProsperMemoryNode} from "../output/graph/ProsperGraphComponent";
+import {ProsperComponent} from "../ProsperComponent";
 
-import {ProsperComponent} from './ProsperComponent';
-import {NodeFactory, ProsperMemoryNode} from './ProsperGraphComponent';
 
 class DefaultNodeFactory implements NodeFactory {
 

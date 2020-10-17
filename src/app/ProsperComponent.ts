@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
-import {ProsperGraphComponent} from './ProsperGraphComponent';
-import {ProsperInputComponent} from './ProsperInputComponent';
-import {ProsperOutputComponent} from './ProsperOutputComponent';
+import {ProsperInputComponent} from "./input/ProsperInputComponent";
+import {ProsperOutputComponent} from "./output/ProsperOutputComponent";
+import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
 
 @Component({
   selector: 'prosper',

@@ -1,6 +1,6 @@
 import {AfterContentInit, Component, ElementRef, Input, OnInit} from '@angular/core';
+import {ProsperComponent} from "../ProsperComponent";
 
-import {ProsperComponent} from './ProsperComponent';
 
 @Component({
   selector: 'prosper-output',

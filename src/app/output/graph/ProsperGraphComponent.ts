@@ -1,5 +1,5 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
-import {ProsperComponent} from './ProsperComponent';
+import {ProsperComponent} from "../../ProsperComponent";
 
 export declare var sigma: any;
 
