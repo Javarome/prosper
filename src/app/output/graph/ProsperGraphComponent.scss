@@ -1,0 +1,11 @@
+@import "../../variables";
+@import "../../mixins";
+
+:host {
+  @include overboard($boardHeight);
+
+  background-color: white;
+  text-align: initial;
+  right: 0;
+  width: 70%;
+}

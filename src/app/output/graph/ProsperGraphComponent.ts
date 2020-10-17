@@ -24,7 +24,9 @@ export interface NodeFactory {
 
 @Component({
   selector: 'prosper-graph',
-  template: '<div></div>'
+  template: '<div></div>',
+  styleUrls: ['ProsperGraphComponent.scss']
+
 })
 export class ProsperGraphComponent implements OnInit {
 

@@ -5,11 +5,7 @@ import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
 
 @Component({
   selector: 'prosper',
-  template: `
-    <prosper-input [prosper]="this" id="prosperInput"></prosper-input>
-    <prosper-output [prosper]="this"></prosper-output>
-    <prosper-graph [prosper]="this" input="prosperInput" id="prosper-graph"></prosper-graph>
-  `,
+  templateUrl: 'ProsperComponent.html',
   styleUrls: ['ProsperComponent.scss']
 })
 export class ProsperComponent {

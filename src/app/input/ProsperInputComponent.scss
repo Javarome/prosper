@@ -1,19 +1,19 @@
 @import "src/app/variables";
 @import "src/app/mixins";
 
-#prosperInput {
+:host {
   @include overboard($boardHeight);
 
   background: whitesmoke;
   line-height: initial;
   padding: 1em;
   width: 30%;
+}
 
-  input[type="number"] {
-    width: 5em;
-  }
+input[type="number"] {
+  width: 5em;
+}
 
-  h1 {
-    margin-top: 0;
-  }
+h1 {
+  margin-top: 0;
 }

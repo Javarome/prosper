@@ -10,35 +10,3 @@
   bottom: 0;
   line-height: initial;
 }
-
-#prosper-graph {
-  @include overboard($boardHeight);
-
-  text-align: initial;
-  right: 0;
-  width: 70%;
-}
-output {
-  display: inline-block;
-  vertical-align: bottom;
-  padding: 0.5em;
-  background: AliceBlue;
-  width: 100%;
-
-  > * {
-    clear: both;
-    display: block;
-    padding: 0.4em;
-    border-radius: 0.3em;
-    margin-top: 0.3em;
-  }
-  .question {
-    float: right;
-    color: white;
-    background: rgb(60, 200, 60);
-  }
-  .answer {
-    float: left;
-    background: lightgray;
-  }
-}

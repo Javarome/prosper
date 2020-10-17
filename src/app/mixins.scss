@@ -3,8 +3,9 @@
   top: 0;
   display: block;
   overflow: auto;
-  background: rgba(255, 255, 255, 0.9);
+  opacity: 0.9;
   border: 1px solid gray;
   box-shadow: 2px 2px 5px gray;
   height: $height;
+  z-index: 1;
 }
