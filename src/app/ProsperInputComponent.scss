@@ -1,5 +1,5 @@
-@import "variables";
-@import "mixins";
+@import "src/app/variables";
+@import "src/app/mixins";
 
 #prosperInput {
   @include overboard($boardHeight);

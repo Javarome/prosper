@@ -1,14 +1,14 @@
-import {AfterContentInit, Component, ElementRef, Input, OnInit} from "@angular/core";
+import {AfterContentInit, Component, ElementRef, Input, OnInit} from '@angular/core';
 
-import {Prosper} from "./Prosper.component";
+import {ProsperComponent} from './ProsperComponent';
 
 @Component({
   selector: 'prosper-output',
   template: '<output></output>',
-  styleUrls: ['ProsperOutput.component']
+  styleUrls: ['ProsperOutputComponent.scss']
 })
-export class ProsperOutput implements OnInit, AfterContentInit {
-  @Input() private prosper: Prosper;
+export class ProsperOutputComponent implements OnInit, AfterContentInit {
+  @Input() private prosper: ProsperComponent;
 
   private SEP;
   private latestInput;
@@ -17,28 +17,28 @@ export class ProsperOutput implements OnInit, AfterContentInit {
   constructor(private $element: ElementRef) {
   }
 
-  reset() {
+  reset(): void {
     while (this.outputElem.firstChild) {
       this.outputElem.removeChild(this.outputElem.firstChild);
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.prosper.addOutput(this);
   }
 
-  input(value) {
+  input(value): void {
     this.latestInput += this.SEP + value.label;
     this.SEP = ' ';
   }
 
-  ngAfterContentInit() {
+  ngAfterContentInit(): void {
     this.outputElem = this.$element.nativeElement.querySelector('output');
     this.SEP = '';
     this.latestInput = '';
   }
 
-  output(prediction) {
+  output(prediction): void {
     const questionElem = document.createElement('div');
     questionElem.classList.add('question');
     questionElem.append(this.latestInput);

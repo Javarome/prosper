@@ -1,5 +1,5 @@
-@import "variables";
-@import "mixins";
+@import "src/app/variables";
+@import "src/app/mixins";
 
 :host {
   position: fixed;
@@ -12,7 +12,7 @@
 }
 
 #prosper-graph {
-  @include overboard();
+  @include overboard($boardHeight);
 
   text-align: initial;
   right: 0;
