@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {ProsperInputComponent} from "./input/ProsperInputComponent";
 import {ProsperOutputComponent} from "./output/ProsperOutputComponent";
 import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
+import {Prosper} from "../api/Prosper";
 
 @Component({
   selector: 'prosper',
@@ -9,54 +10,53 @@ import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
   styleUrls: ['ProsperComponent.scss']
 })
 export class ProsperComponent {
-  memory: ProsperGraphComponent;
+  readonly prosper: Prosper
 
-  private inputs = [];
-  private outputs = [];
+  constructor() {
+    this.prosper = new Prosper()
+  }
 
   log(msg): void {
     console.log(`Prosper: ${msg}`);
   }
 
   addInput(input: ProsperInputComponent): void {
-    this.inputs.push(input);
+    this.prosper.addInput(input);
   }
 
   addOutput(output: ProsperOutputComponent): void {
-    this.outputs.push(output);
+    this.prosper.addOutput(output);
   }
 
   setMemory(memory: ProsperGraphComponent): void {
-    this.memory = memory;
+    this.prosper.setMemory(memory);
   }
 
   getMemory(): ProsperGraphComponent {
-    return this.memory;
+    return this.prosper.getMemory();
   }
 
   input(value: any, nodeFactory): void {
-    this.memory.input(value, nodeFactory);
-    this.outputs.forEach(output => output.input(value));
+    this.prosper.input(value, nodeFactory);
   }
 
   output(preds): void {
-    this.outputs.forEach(output => output.output(preds));
+    this.prosper.output(preds);
   }
 
   reset(): void {
-    this.memory.reset();
-    this.outputs.forEach(output => output.reset());
+    this.prosper.reset();
   }
 
   refresh(): void {
-    this.memory.refresh();
+    this.prosper.refresh();
   }
 
   getState(): object {
-    return this.memory.toJSON();
+    return this.prosper.toJSON();
   }
 
   setState(data: string): void {
-    this.memory.fromJSON(data);
+    this.prosper.fromJSON(data);
   }
 }

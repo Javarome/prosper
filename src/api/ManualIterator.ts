@@ -1,17 +1,14 @@
-import {Iterator} from "./Iterator";
-import {NodeFactory} from "../output/graph/NodeFactory";
-import {ProsperComponent} from "../ProsperComponent";
+import {Prosper} from "./Prosper";
+import {NodeFactory} from "./NodeFactory";
+import {Iterator} from "../util/Iterator";
 
 export class ManualIterator<T> implements Iterator<T> {
+
   hasNext: boolean;
-  private readonly nodeFactory: NodeFactory;
   private sampling: Array<T>;
   private i: number;
-  private prosper: ProsperComponent;
 
-  constructor(prosper: ProsperComponent, nodeFactory: NodeFactory) {
-    this.prosper = prosper;
-    this.nodeFactory = nodeFactory;
+  constructor(private prosper: Prosper, private nodeFactory: NodeFactory) {
   }
 
   iterate(sampling: Array<T>): void {

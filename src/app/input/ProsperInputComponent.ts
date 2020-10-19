@@ -1,14 +1,14 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
-import {ProsperComponent} from "../ProsperComponent";
-import {Iterator} from "./Iterator";
-import {WordNodeFactory} from "./WordNodeFactory";
-import {CharNodeFactory} from "./CharNodeFactory";
-import {AutoIterator} from "./AutoIterator";
-import {ManualIterator} from "./ManualIterator";
-import {IterationType} from "./IterationType";
-import {IterationChoice} from "./IterationChoice";
+import {Iterator} from "../../util/Iterator";
 import {SampleType} from "./SampleType";
 import {SampleChoice} from "./SampleChoice";
+import {Prosper} from "../../api/Prosper";
+import {IterationType} from "../../api/IterationType";
+import {IterationChoice} from "../../api/IterationChoice";
+import {CharNodeFactory} from "../../api/CharNodeFactory";
+import {AutoIterator} from "../../api/AutoIterator";
+import {ManualIterator} from "../../api/ManualIterator";
+import {WordNodeFactory} from "../../api/WordNodeFactory";
 
 
 @Component({
@@ -17,6 +17,8 @@ import {SampleChoice} from "./SampleChoice";
   styleUrls: ['ProsperInputComponent.scss']
 })
 export class ProsperInputComponent implements OnInit {
+  @Input() prosper: Prosper;
+
   iteration: Iterator<string>;
   memoryFile;
 
@@ -30,7 +32,7 @@ export class ProsperInputComponent implements OnInit {
   iterationTypes;
   iterationType: IterationChoice<string>;
   manualIteration: IterationChoice<string>;
-  @Input() prosper: ProsperComponent;
+
   private readonly sampleCharsType: SampleChoice;
   private readonly sampleWordsType: SampleChoice;
 
@@ -55,14 +57,14 @@ export class ProsperInputComponent implements OnInit {
     this.autoIteration = {
       value: IterationType.automatic,
       label: 'Automatic',
-      create(prosper: ProsperComponent, nodeFactory): AutoIterator<string> {
+      create(prosper: Prosper, nodeFactory): AutoIterator<string> {
         return new AutoIterator<string>(prosper, nodeFactory);
       }
     };
     this.manualIteration = {
       value: IterationType.manual,
       label: 'Manual',
-      create(prosper: ProsperComponent, nodeFactory): ManualIterator<string> {
+      create(prosper: Prosper, nodeFactory): ManualIterator<string> {
         return new ManualIterator<string>(prosper, nodeFactory);
       }
     };

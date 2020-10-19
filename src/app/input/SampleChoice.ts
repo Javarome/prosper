@@ -1,5 +1,5 @@
 import {SampleType} from "./SampleType";
-import {NodeFactory} from "../output/graph/NodeFactory";
+import {NodeFactory} from "../../api/NodeFactory";
 
 export interface SampleChoice {
   value: SampleType;

@@ -1,5 +1,5 @@
-import {NodeFactory} from "../output/graph/NodeFactory";
-import {ProsperMemoryNode} from "../output/graph/ProsperMemoryNode";
+import {NodeFactory} from "./NodeFactory";
+import {ProsperMemoryNode} from "./ProsperMemoryNode";
 
 export class DefaultNodeFactory implements NodeFactory {
 

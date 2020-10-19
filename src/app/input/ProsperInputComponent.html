@@ -23,8 +23,8 @@
         *ngIf="iterationType==manualIteration"
         type="button"
         (click)="iteration.next()"
-        [disabled]="!iteration || !iteration.hasNext"
-        title="Click to process next node"
+      [disabled]="!iteration || !iteration.hasNext"
+      title="Click to process next node"
     >Next
     </button>
   </fieldset>
@@ -33,12 +33,13 @@
 <fieldset>
   <legend>Memory</legend>
   <label for="min-node-size">Minimum node size</label> <input (change)="replay()"
-    [(ngModel)]="prosper.memory.minNodeSize" id="min-node-size" step="0.1" type="number"> <label for="activation-gain">Activation
-  gain</label> <input (change)="replay()" [(ngModel)]="prosper.memory.activationGain" id="activation-gain" step="0.1"
-    type="number"> <label for="deactivation-loss">Deactivation loss</label> <input (change)="replay()"
-    [(ngModel)]="prosper.memory.deactivationLoss" id="deactivation-loss" step="0.1" type="number"> <label
-    for="activated-min">Activated minimum</label> <input (change)="replay()" [(ngModel)]="prosper.memory.activatedMin"
-    id="activated-min" step="0.1" type="number">
+  [(ngModel)]="prosper.minNodeSize" id="min-node-size" step="0.1" type="number"> <label
+  for="activation-gain">Activation gain</label> <input (change)="replay()" [(ngModel)]="prosper.activationGain"
+  id="activation-gain" step="0.1"
+  type="number"> <label for="deactivation-loss">Deactivation loss</label> <input (change)="replay()"
+  [(ngModel)]="prosper.deactivationLoss" id="deactivation-loss" step="0.1" type="number"> <label
+  for="activated-min">Activated minimum</label> <input (change)="replay()" [(ngModel)]="prosper.activatedMin"
+  id="activated-min" step="0.1" type="number">
   <button (click)="refresh()">Refresh</button>
   <button (click)="reset()" [disabled]="empty">Reset</button>
   <button (click)="replay()" [disabled]="empty">Replay</button>

@@ -1,7 +1,7 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
 import {ProsperComponent} from "../../ProsperComponent";
-import {NodeFactory} from "./NodeFactory";
-import {ProsperMemoryNode} from "./ProsperMemoryNode";
+import {NodeFactory} from "../../../api/NodeFactory";
+import {ProsperMemoryNode} from "../../../api/ProsperMemoryNode";
 
 
 export declare var sigma: any;
@@ -19,6 +19,7 @@ export class ProsperGraphComponent implements OnInit {
   activationGain = 0.3;
   deactivationLoss = 0.1;
   activatedMin = 1;
+
   @Input() private prosper: ProsperComponent;
 
   private s: any;
