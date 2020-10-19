@@ -1,126 +1,15 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
-import {NodeFactory, ProsperMemoryNode} from "../output/graph/ProsperGraphComponent";
 import {ProsperComponent} from "../ProsperComponent";
+import {Iterator} from "./Iterator";
+import {WordNodeFactory} from "./WordNodeFactory";
+import {CharNodeFactory} from "./CharNodeFactory";
+import {AutoIterator} from "./AutoIterator";
+import {ManualIterator} from "./ManualIterator";
+import {IterationType} from "./IterationType";
+import {IterationChoice} from "./IterationChoice";
+import {SampleType} from "./SampleType";
+import {SampleChoice} from "./SampleChoice";
 
-
-class DefaultNodeFactory implements NodeFactory {
-
-  create(value: any): ProsperMemoryNode {
-    const n = {
-      id: value,
-      label: value,
-      x: Math.random(),
-      y: Math.random(),
-      size: 1,
-      concept: false,
-      color: undefined
-    };
-    n.toString = () => {
-      return n.id + '(' + n.size + ')';
-    };
-    return n;
-  }
-
-  merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode): ProsperMemoryNode {
-    throw new Error('Not implemented');
-  }
-}
-
-class CharNodeFactory extends DefaultNodeFactory {
-  merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode): ProsperMemoryNode {
-    const conceptNode = this.create(node1.label + node2.label);
-    conceptNode.color = 'green';
-    conceptNode.concept = true;
-    return conceptNode;
-  }
-}
-
-class WordNodeFactory extends DefaultNodeFactory {
-  merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode): ProsperMemoryNode {
-    const conceptNode: ProsperMemoryNode = this.create(node1.label + ' ' + node2.label);
-    conceptNode.color = 'green';
-    conceptNode.concept = true;
-    return conceptNode;
-  }
-}
-
-interface Iterator<T> {
-  hasNext?: boolean;
-
-  iterate(sampling: Array<T>, params?: {}): void;
-
-  next?(): void;
-}
-
-class AutoIterator<T> implements Iterator<T> {
-  private prosper: ProsperComponent;
-  private readonly nodeFactory: NodeFactory;
-
-  constructor(prosper: ProsperComponent, nodeFactory: NodeFactory) {
-    this.prosper = prosper;
-    this.nodeFactory = nodeFactory;
-  }
-
-  iterate(sampling: Array<T>, params): void {
-    let i = 0;
-    sampling.forEach(input => {
-      if (input) {
-        setTimeout(() => this.prosper.input(input, this.nodeFactory), params.speed * i++);
-      }
-    });
-  }
-}
-
-class ManualIterator<T> implements Iterator<T> {
-  hasNext: boolean;
-  private readonly nodeFactory: NodeFactory;
-  private sampling: Array<T>;
-  private i: number;
-  private prosper: ProsperComponent;
-
-  constructor(prosper: ProsperComponent, nodeFactory: NodeFactory) {
-    this.prosper = prosper;
-    this.nodeFactory = nodeFactory;
-  }
-
-  iterate(sampling: Array<T>): void {
-    this.sampling = sampling;
-    this.i = 0;
-    this.next();
-  }
-
-  next(): void {
-    const input = this.sampling[this.i];
-    if (input) {
-      this.prosper.input(input, this.nodeFactory);
-    }
-    this.i++;
-    this.hasNext = this.i < this.sampling.length;
-  }
-}
-
-enum IterationType {
-  manual = 'manual', automatic = 'auto'
-}
-
-interface IterationChoice<T> {
-  value: IterationType;
-  label: string;
-
-  create(prosper: ProsperComponent, nodeFactory): Iterator<T>;
-}
-
-enum SampleType {
-  chars = 'chars',
-  words = 'words'
-}
-
-interface SampleChoice {
-  value: SampleType;
-  label: string;
-  sample: (input, nodeFactory) => [];
-  nodeFactory: NodeFactory;
-}
 
 @Component({
   selector: 'prosper-input',

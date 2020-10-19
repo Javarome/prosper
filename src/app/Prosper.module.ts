@@ -6,6 +6,7 @@ import {ProsperInputComponent} from "./input/ProsperInputComponent";
 import {ProsperOutputComponent} from "./output/ProsperOutputComponent";
 import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
 
+
 @NgModule({
   imports: [BrowserModule, FormsModule],
   declarations: [ProsperComponent, ProsperOutputComponent, ProsperInputComponent, ProsperGraphComponent],

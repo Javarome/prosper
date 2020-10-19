@@ -1,26 +1,11 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
 import {ProsperComponent} from "../../ProsperComponent";
+import {NodeFactory} from "./NodeFactory";
+import {ProsperMemoryNode} from "./ProsperMemoryNode";
+
 
 export declare var sigma: any;
 
-interface SigmaNode {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  size: number;
-}
-
-export interface ProsperMemoryNode extends SigmaNode {
-  color: string;
-  concept: boolean;
-}
-
-export interface NodeFactory {
-  create(input: any): ProsperMemoryNode;
-
-  merge(node1: ProsperMemoryNode, node2: ProsperMemoryNode): ProsperMemoryNode;
-}
 
 @Component({
   selector: 'prosper-graph',
