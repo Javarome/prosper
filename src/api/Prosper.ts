@@ -1,11 +1,18 @@
-import {ProsperGraphComponent} from "../app/output/graph/ProsperGraphComponent";
 import {ProsperInputComponent} from "../app/input/ProsperInputComponent";
 import {ProsperOutputComponent} from "../app/output/ProsperOutputComponent";
+import {ProsperMemory} from "./ProsperMemory";
+import {Subject} from "rxjs";
 
 export class Prosper {
-  private memory: ProsperGraphComponent;
-  private readonly inputs = [];
-  private readonly outputs = [];
+  private memory: ProsperMemory;
+  private readonly inputs: ProsperInputComponent[] = [];
+  private readonly outputs: ProsperOutputComponent[] = [];
+
+  private _latestInput = new Subject()
+
+  get latestInput() {
+    return this._latestInput.asObservable()
+  }
 
   get minNodeSize(): number {
     return this.memory.minNodeSize
@@ -51,17 +58,20 @@ export class Prosper {
     this.outputs.push(output);
   }
 
-  setMemory(memory: ProsperGraphComponent): void {
+  setMemory(memory: ProsperMemory): void {
     this.memory = memory;
   }
 
-  getMemory(): ProsperGraphComponent {
+  getMemory(): ProsperMemory {
     return this.memory;
   }
 
   input(value: any, nodeFactory): void {
     this.memory.input(value, nodeFactory);
+    this._latestInput.next(value)
+    const preds = this.memory.predict();
     this.outputs.forEach(output => output.input(value));
+    this.output(preds);
   }
 
   output(preds): void {
@@ -71,10 +81,6 @@ export class Prosper {
   reset(): void {
     this.memory.reset();
     this.outputs.forEach(output => output.reset());
-  }
-
-  refresh(): void {
-    this.memory.refresh();
   }
 
   getState(): object {

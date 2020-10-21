@@ -1,8 +1,9 @@
-import {Component} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {ProsperInputComponent} from "./input/ProsperInputComponent";
 import {ProsperOutputComponent} from "./output/ProsperOutputComponent";
-import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
 import {Prosper} from "../api/Prosper";
+import {ProsperMemory} from "../api/ProsperMemory";
+import {ProsperGraphComponent} from "./output/graph/ProsperGraphComponent";
 
 @Component({
   selector: 'prosper',
@@ -12,8 +13,14 @@ import {Prosper} from "../api/Prosper";
 export class ProsperComponent {
   readonly prosper: Prosper
 
+  @ViewChild(ProsperGraphComponent)
+  graph: ProsperGraphComponent
+
   constructor() {
     this.prosper = new Prosper()
+    this.prosper.latestInput.subscribe(input => {
+      this.refresh()
+    })
   }
 
   log(msg): void {
@@ -28,16 +35,17 @@ export class ProsperComponent {
     this.prosper.addOutput(output);
   }
 
-  setMemory(memory: ProsperGraphComponent): void {
+  setMemory(memory: ProsperMemory): void {
     this.prosper.setMemory(memory);
   }
 
-  getMemory(): ProsperGraphComponent {
+  getMemory(): ProsperMemory {
     return this.prosper.getMemory();
   }
 
   input(value: any, nodeFactory): void {
     this.prosper.input(value, nodeFactory);
+    this.refresh();
   }
 
   output(preds): void {
@@ -49,7 +57,7 @@ export class ProsperComponent {
   }
 
   refresh(): void {
-    this.prosper.refresh();
+    this.graph.refresh();
   }
 
   getState(): object {

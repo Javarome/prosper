@@ -1,4 +1,4 @@
-import {Component, ElementRef, Input, OnInit} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Iterator} from "../../util/Iterator";
 import {SampleType} from "./SampleType";
 import {SampleChoice} from "./SampleChoice";
@@ -18,6 +18,7 @@ import {WordNodeFactory} from "../../api/WordNodeFactory";
 })
 export class ProsperInputComponent implements OnInit {
   @Input() prosper: Prosper;
+  @Output() readonly refreshed = new EventEmitter()
 
   iteration: Iterator<string>;
   memoryFile;
@@ -86,7 +87,7 @@ export class ProsperInputComponent implements OnInit {
   }
 
   refresh(): void {
-    this.prosper.refresh();
+    this.refreshed.emit();
   }
 
   save(): void {

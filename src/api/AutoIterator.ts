@@ -11,7 +11,9 @@ export class AutoIterator<T> implements Iterator<T> {
     let i = 0;
     sampling.forEach(input => {
       if (input) {
-        setTimeout(() => this.prosper.input(input, this.nodeFactory), params.speed * i++);
+        setTimeout(() => {
+          this.prosper.input(input, this.nodeFactory)
+        }, params.speed * i++);
       }
     });
   }
