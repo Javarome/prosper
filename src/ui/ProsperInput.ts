@@ -71,6 +71,8 @@ const css = `
 export class ProsperInput extends HTMLElement {
   private _prosper?: Prosper
   private iteration?: Iterator
+  /** Automatic iterations still running: successive inputs are queued, not cancelled. */
+  private running: Iterator[] = []
   private unsubscribes: Array<() => void> = []
   private readonly root: ShadowRoot
 
@@ -135,7 +137,13 @@ export class ProsperInput extends HTMLElement {
   disconnectedCallback(): void {
     this.unsubscribes.forEach(unsubscribe => unsubscribe())
     this.unsubscribes = []
+    this.stopAll()
+  }
+
+  private stopAll(): void {
     this.iteration?.stop()
+    this.running.forEach(it => it.stop())
+    this.running = []
   }
 
   private get sampleChoice(): SampleChoice {
@@ -171,7 +179,10 @@ export class ProsperInput extends HTMLElement {
         }
       })
     }
-    this.elem("reset").addEventListener("click", () => this._prosper?.reset())
+    this.elem("reset").addEventListener("click", () => {
+      this.stopAll()
+      this._prosper?.reset()
+    })
     this.elem("replay").addEventListener("click", () => this.replay())
     this.elem("save").addEventListener("click", () => this.save())
     this.input("memory-file").addEventListener("change", e => this.load(e.target as HTMLInputElement))
@@ -207,6 +218,7 @@ export class ProsperInput extends HTMLElement {
     }
     const factory = this.sampleChoice.nodeFactory
     const inputs = prosper.memory.stimuli().map(id => factory.create(id))
+    this.stopAll()
     prosper.reset()
     this.iterate(inputs)
   }
@@ -216,12 +228,21 @@ export class ProsperInput extends HTMLElement {
     if (!prosper) {
       return
     }
-    this.iteration?.stop()
     const factory = this.sampleChoice.nodeFactory
-    this.iteration = this.manual
-      ? new ManualIterator(prosper, factory)
-      : new AutoIterator(prosper, factory, this.input("delay").valueAsNumber || 0)
-    this.iteration.iterate(sampling)
+    if (this.manual) {
+      this.iteration?.stop()
+      this.iteration = new ManualIterator(prosper, factory)
+      this.iteration.iterate(sampling)
+    } else {
+      // Queue after the stimuli still pending from previous automatic inputs.
+      const delay = this.input("delay").valueAsNumber || 0
+      const pending = this.running.filter(it => it.hasNext)
+      const previous = pending.at(-1)
+      const iteration = new AutoIterator(prosper, factory, delay)
+      this.running = [...pending, iteration]
+      const start = () => iteration.iterate(sampling)
+      previous instanceof AutoIterator ? previous.then(start) : start()
+    }
     this.updateState()
   }
 

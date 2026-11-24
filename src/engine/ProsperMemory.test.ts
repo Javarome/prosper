@@ -2,7 +2,7 @@ import {describe, expect, it} from "vitest"
 import {CharNodeFactory, WordNodeFactory} from "./NodeFactory"
 import {ProsperMemory} from "./ProsperMemory"
 import {Prosper} from "./Prosper"
-import {ManualIterator} from "./Iterator"
+import {AutoIterator, ManualIterator} from "./Iterator"
 
 function learn(memory: ProsperMemory, text: string, factory = new CharNodeFactory()) {
   for (const c of text.split("")) {
@@ -91,5 +91,20 @@ describe("Prosper", () => {
     iterator.next()
     expect(iterator.hasNext).toBe(false)
     expect(events).toEqual(["in:a", "out:", "in:b", "out:b"])
+  })
+
+  it("chains automatic iterations", async () => {
+    const prosper = new Prosper()
+    const factory = new CharNodeFactory()
+    const inputs: string[] = []
+    prosper.on("stimulus", e => inputs.push(e.detail.id))
+    const first = new AutoIterator(prosper, factory)
+    const second = new AutoIterator(prosper, factory)
+    const done = new Promise<void>(resolve => second.then(resolve))
+    first.then(() => second.iterate(["c", "d"].map(c => factory.create(c))))
+    first.iterate(["a", "b"].map(c => factory.create(c)))
+    await done
+    expect(inputs).toEqual(["a", "b", "c", "d"])
+    expect(second.hasNext).toBe(false)
   })
 })

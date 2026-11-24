@@ -106,6 +106,7 @@ export class ProsperGraph extends HTMLElement {
         }]
       },
       settings: {
+        itemSizesReference: "screen",
         renderEdgeLabels: true,
         enableEdgeEvents: true,
         allowInvalidContainer: true

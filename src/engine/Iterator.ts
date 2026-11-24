@@ -21,23 +21,44 @@ export interface Iterator {
 export class AutoIterator implements Iterator {
   private timers: ReturnType<typeof setTimeout>[] = []
   private remaining = 0
+  private started = false
+  private onDone: Array<() => void> = []
 
   constructor(private readonly prosper: Prosper, private readonly nodeFactory: NodeFactory,
               private readonly delay = 0) {
   }
 
+  /** true while stimuli remain to be input (including before iterate() was called). */
   get hasNext(): boolean {
-    return this.remaining > 0
+    return !this.started || this.remaining > 0
   }
 
   iterate(sampling: Array<Stimulus | null>): void {
-    this.stop()
+    this.timers.forEach(clearTimeout)
+    this.started = true
     const inputs = sampling.filter((s): s is Stimulus => Boolean(s))
     this.remaining = inputs.length
+    if (!inputs.length) {
+      this.done()
+    }
     this.timers = inputs.map((input, i) => setTimeout(() => {
       this.remaining--
       this.prosper.input(input, this.nodeFactory)
+      if (this.remaining === 0) {
+        this.done()
+      }
     }, this.delay * i))
+  }
+
+  /**
+   * Runs a callback once all stimuli have been input (immediately if already done).
+   */
+  then(callback: () => void): void {
+    if (this.started && this.remaining === 0) {
+      callback()
+    } else {
+      this.onDone.push(callback)
+    }
   }
 
   next(): void {
@@ -47,6 +68,14 @@ export class AutoIterator implements Iterator {
     this.timers.forEach(clearTimeout)
     this.timers = []
     this.remaining = 0
+    this.started = true
+    this.onDone = []
+  }
+
+  private done(): void {
+    const callbacks = this.onDone
+    this.onDone = []
+    callbacks.forEach(callback => callback())
   }
 }
 
