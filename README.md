@@ -28,4 +28,7 @@ npm test           # engine unit tests (Vitest)
 npm run build      # type-check and production build in dist/
 ```
 
+Each push on `master` is tested, built and deployed to [javarome.com/prosper](https://javarome.com/prosper/) by
+GitHub Actions (`.github/workflows/pages.yml`).
+
 Memories saved by the previous (Angular/sigma v1) version can still be loaded.
