@@ -2,31 +2,24 @@
 
 Automate things the way you think about them.
 
-Check out a [demo](https://prosper.stackblitz.io).
+Prosper is an experiment about intelligence emerging from a connected memory: stimuli are memorized as nodes of a
+graph, linked to the nodes that were active when they occurred. Nodes are activated when input and decay over time,
+already-crossed links make concepts emerge, and predictions are the successors of currently active nodes.
 
+## Structure
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.1.7.
+- `src/engine`: the Prosper engine, in plain TypeScript, built on a [graphology](https://graphology.github.io/) graph.
+  It has no UI dependency and can run in Node as well as in a browser.
+- `src/ui`: vanilla web components (`<prosper-app>`, `<prosper-input>`, `<prosper-output>`, `<prosper-graph>`).
+  The graph is rendered with [sigma.js](https://www.sigmajs.org/) and laid out with ForceAtlas2.
 
-## Development server
+## Development
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+```bash
+npm install
+npm run dev        # dev server on http://localhost:5173
+npm test           # engine unit tests (Vitest)
+npm run build      # type-check and production build in dist/
+```
 
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+Memories saved by the previous (Angular/sigma v1) version can still be loaded.
