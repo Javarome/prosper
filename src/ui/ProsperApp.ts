@@ -14,9 +14,9 @@ const css = `
     grid-template-areas: "input graph" "output output";
     height: 100vh;
   }
-  prosper-input { grid-area: input; border-right: 1px solid #ddd; }
+  prosper-input { grid-area: input; border-right: 1px solid var(--prosper-border); }
   prosper-graph { grid-area: graph; }
-  prosper-output { grid-area: output; border-top: 1px solid #ddd; }
+  prosper-output { grid-area: output; border-top: 1px solid var(--prosper-border); }
 `
 
 /**

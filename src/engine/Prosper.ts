@@ -19,6 +19,12 @@ export interface ProsperEventMap {
 export class Prosper extends EventTarget implements MemoryParameters {
   readonly memory: ProsperMemory
 
+  /**
+   * Stimuli input since the memory was created, reset or loaded, in their input order.
+   * This is a record of the experiment (to replay it), not part of the memory, which has no notion of time.
+   */
+  private readonly history: Stimulus[] = []
+
   constructor(memory = new ProsperMemory()) {
     super()
     this.memory = memory
@@ -78,14 +84,26 @@ export class Prosper extends EventTarget implements MemoryParameters {
 
   input(stimulus: Stimulus, nodeFactory: NodeFactory): Prediction[] {
     this.memory.input(stimulus, nodeFactory)
+    this.history.push(stimulus)
     this.dispatchEvent(new CustomEvent("stimulus", {detail: stimulus}))
     const predictions = this.memory.predict()
     this.dispatchEvent(new CustomEvent("prediction", {detail: predictions}))
     return predictions
   }
 
+  /**
+   * @return The ids of the stimuli to replay: the recorded inputs if any, or else (for a loaded memory) the input
+   * nodes in their creation order.
+   */
+  stimuli(): string[] {
+    return this.history.length > 0
+      ? this.history.map(s => s.id)
+      : this.memory.graph.filterNodes((_node, attrs) => !attrs.concept)
+  }
+
   reset(): void {
     this.memory.reset()
+    this.history.length = 0
     this.dispatchEvent(new Event("reset"))
   }
 
@@ -95,6 +113,7 @@ export class Prosper extends EventTarget implements MemoryParameters {
 
   fromJSON(data: MemoryState): void {
     this.memory.fromJSON(data)
+    this.history.length = 0
     this.dispatchEvent(new Event("load"))
   }
 

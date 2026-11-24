@@ -7,20 +7,17 @@ export interface NodeAttributes {
   size: number
   /** true if the node emerged from the merge of other nodes. */
   concept: boolean
-  /** Memory times at which this node was input (or emerged, for a concept). */
-  times: number[]
   /** Layout coordinates, set by views (not used by the engine). */
   x?: number
   y?: number
 }
 
 export interface EdgeAttributes {
-  /** Creation order of this edge in the memory. */
-  order: number
-  /** Number of times this link has been crossed. The more it is crossed, the easier it is to follow. */
+  /**
+   * How easy this link is to follow. Each crossing adds the activation of its source at that moment, so links from
+   * recent (more active) nodes are reinforced more than links from older context.
+   */
   weight: number
-  /** Memory times at which this link has been crossed. */
-  times: number[]
 }
 
 /**

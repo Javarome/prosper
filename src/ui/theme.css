@@ -1,0 +1,39 @@
+/*
+ * Prosper colors, following the system light/dark preference.
+ * Custom properties inherit through the components' shadow DOM.
+ */
+:root {
+  color-scheme: light dark;
+
+  --prosper-fg: light-dark(#1d1d1f, #e6e6e6);
+  --prosper-border: light-dark(#d4d4d4, #3a3a3a);
+
+  --prosper-input-bg: light-dark(whitesmoke, #202124);
+  --prosper-graph-bg: light-dark(white, #17181a);
+  --prosper-output-bg: light-dark(#fafafa, #1b1c1e);
+
+  --prosper-question-fg: white;
+  --prosper-question-bg: light-dark(rgb(60, 170, 60), rgb(40, 130, 50));
+  --prosper-answer-fg: var(--prosper-fg);
+  --prosper-answer-bg: light-dark(lightgray, #3a3b3e);
+
+  /* Graph (read by the WebGL renderer) */
+  --prosper-node: light-dark(steelblue, #6aa5d8);
+  --prosper-concept: light-dark(#3cb371, #4fcf86);
+  --prosper-edge: light-dark(lightblue, #36576b);
+  --prosper-edge-hover: light-dark(red, #ff6b6b);
+  --prosper-label: light-dark(#1d1d1f, #e6e6e6);
+  --prosper-edge-label: light-dark(gray, #8a8f96);
+  --prosper-label-backdrop: light-dark(white, #2a2b2e);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Helvetica, sans-serif;
+  color: var(--prosper-fg);
+  background: var(--prosper-graph-bg);
+}

@@ -44,20 +44,21 @@ describe("ProsperMemory", () => {
     expect(memory.graph.getNodeAttribute("a", "size")).toBe(memory.minNodeSize)
   })
 
-  it("records the times of inputs and link crossings", () => {
-    const memory = new ProsperMemory()
-    learn(memory, "abxab")
-    expect(memory.time).toBe(5)
-    expect(memory.graph.getNodeAttribute("a", "times")).toEqual([1, 4])
-    expect(memory.graph.getEdgeAttribute("a-b", "times")).toEqual([2, 5])
-  })
-
   it("reinforces a link each time it is crossed", () => {
     const memory = new ProsperMemory()
     learn(memory, "ab")
-    expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBe(1)
+    const first = memory.graph.getEdgeAttribute("a-b", "weight")
     learn(memory, "xyzab")
-    expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBe(2)
+    expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBeGreaterThan(first)
+  })
+
+  it("links more strongly from recent (more active) context than from older context", () => {
+    const memory = new ProsperMemory()
+    memory.spreadRatio = 0
+    learn(memory, "abc")
+    expect(memory.graph.hasEdge("a-c")).toBe(true)
+    expect(memory.graph.getEdgeAttribute("b-c", "weight"))
+      .toBeGreaterThan(memory.graph.getEdgeAttribute("a-c", "weight"))
   })
 
   it("makes a concept emerge from an already-crossed link", () => {
@@ -107,12 +108,6 @@ describe("ProsperMemory", () => {
     expect(are && can && are.score > can.score).toBe(true)
   })
 
-  it("lists input stimuli in their input order", () => {
-    const memory = new ProsperMemory()
-    learn(memory, "abab")
-    expect(memory.stimuli()).toEqual(["a", "b", "a", "b"])
-  })
-
   it("merges words with a space", () => {
     const factory = new WordNodeFactory()
     expect(factory.merge(factory.create("hello"), factory.create("world")))
@@ -126,7 +121,6 @@ describe("ProsperMemory", () => {
     restored.fromJSON(JSON.parse(JSON.stringify(memory.toJSON())))
     expect(restored.graph.nodes()).toEqual(memory.graph.nodes())
     expect(restored.graph.edges()).toEqual(memory.graph.edges())
-    expect(restored.time).toBe(memory.time)
     expect(restored.latestNodes).toEqual(memory.latestNodes)
   })
 
@@ -139,10 +133,9 @@ describe("ProsperMemory", () => {
     expect(memory.graph.nodes()).toEqual(["a", "b"])
     expect(memory.graph.getNodeAttribute("a", "size")).toBe(1.2)
     expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBe(1)
-    expect(memory.stimuli()).toEqual(["a", "b"])
   })
 
-  it("imports saves made before times and weights existed", () => {
+  it("imports saves made before weights existed", () => {
     const memory = new ProsperMemory()
     memory.fromJSON({
       options: {type: "directed", multi: false, allowSelfLoops: true},
@@ -150,10 +143,9 @@ describe("ProsperMemory", () => {
       nodes: [{key: "a", attributes: {label: "a", size: 1}}, {key: "b", attributes: {label: "b", size: 1}}],
       edges: [{key: "a-b", source: "a", target: "b", attributes: {order: 1, label: "1", size: 1}}]
     } as never)
-    expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBe(1)
-    expect(memory.graph.getNodeAttribute("a", "times")).toEqual([])
+    expect(memory.graph.getEdgeAttributes("a-b")).toEqual({weight: 1})
     learn(memory, "ab")
-    expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBe(2)
+    expect(memory.graph.getEdgeAttribute("a-b", "weight")).toBeGreaterThan(1)
   })
 })
 
@@ -171,6 +163,15 @@ describe("Prosper", () => {
     iterator.next()
     expect(iterator.hasNext).toBe(false)
     expect(events).toEqual(["in:a", "out:", "in:b", "out:b"])
+  })
+
+  it("records inputs to replay them in their input order", () => {
+    const prosper = new Prosper()
+    const factory = new CharNodeFactory()
+    "abab".split("").forEach(c => prosper.input(factory.create(c), factory))
+    expect(prosper.stimuli()).toEqual(["a", "b", "a", "b"])
+    prosper.fromJSON(prosper.toJSON())
+    expect(prosper.stimuli()).toEqual(["a", "b"])
   })
 
   it("chains automatic iterations", async () => {

@@ -1,14 +1,11 @@
 import type {Prediction, Prosper} from "../engine"
 
-/** Maximum number of predictions displayed after each input. */
-const MAX_PREDICTIONS = 3
-
 const css = `
   :host {
     display: block;
     overflow: auto;
     padding: 0.5em 1em;
-    background: var(--prosper-output-bg, #fafafa);
+    background: var(--prosper-output-bg);
   }
   .bubble {
     clear: both;
@@ -20,12 +17,13 @@ const css = `
   }
   .question {
     float: right;
-    color: white;
-    background: rgb(60, 200, 60);
+    color: var(--prosper-question-fg);
+    background: var(--prosper-question-bg);
   }
   .answer {
     float: left;
-    background: lightgray;
+    color: var(--prosper-answer-fg);
+    background: var(--prosper-answer-bg);
   }
 `
 
@@ -84,9 +82,8 @@ export class ProsperOutput extends HTMLElement {
   }
 
   private output(predictions: Prediction[]): void {
-    const answer = predictions.slice(0, MAX_PREDICTIONS)
-      .map(p => `${p.label} (${Math.round(p.score * 100)}%)`)
-      .join(", ")
+    // A human-like answer: only the most likely prediction.
+    const answer = predictions[0]?.label
     this.list.append(
       this.bubble("question", this.latestInput.join(" ")),
       this.bubble("answer", answer || "...")

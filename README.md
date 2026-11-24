@@ -5,7 +5,8 @@ Automate things the way you think about them.
 Prosper is an experiment about intelligence emerging from a connected memory:
 
 - stimuli are memorized as nodes of a graph, linked to the nodes that were active when they occurred;
-- each input happens at a memory time, recorded on the input node and on the links crossed to reach it;
+- like neurons, the memory has no notion of time: recency only shows through activation levels, which decay at each
+  tick, so links from the most recently perceived (most active) nodes are stronger than links from older context;
 - crossing a link again reinforces it (like a furrow getting deeper), and makes a concept emerge from its two ends;
 - a perceived node is activated, and spreads part of its activation to its neighbors, proportionally to the links
   weights; all activations decay at each input;

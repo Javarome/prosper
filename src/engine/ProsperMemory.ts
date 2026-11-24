@@ -11,7 +11,7 @@ export interface MemoryParameters {
   minNodeSize: number
   /** Activation added to a node when it is input. */
   activationGain: number
-  /** Activation lost by every node at each input. */
+  /** Activation lost by every node at each tick (input). */
   deactivationLoss: number
   /** Activation above which a node is considered as currently active ("latest"). */
   activatedMin: number
@@ -41,7 +41,10 @@ interface LegacyState {
 /**
  * A memory as a directed graph of events, where currently active nodes link to the next input ones.
  *
- * - Each input occurs at a memory time, recorded on the input node and on the links crossed to reach it.
+ * Like neurons, the memory has no notion of time: recency only shows through activation levels, which decay at each
+ * tick. So the most recently perceived nodes are the most active ones, and the links they create or reinforce are
+ * the strongest, whereas older context still links, but more weakly.
+ *
  * - Crossing a link again reinforces it, and makes a concept emerge from its two ends.
  * - Activating a node spreads part of its activation to its neighbors, proportionally to the links weights.
  * - Predictions are the successors of active nodes, weighted by the activation of their source and the link weight.
@@ -57,9 +60,6 @@ export class ProsperMemory implements MemoryParameters {
   /** Ids of the currently active nodes. */
   latestNodes: string[] = []
 
-  /** Current memory time, incremented at each input. */
-  time = 0
-
   readonly graph: MemoryGraph = new DirectedGraph<NodeAttributes, EdgeAttributes>()
 
   constructor(private readonly logger: (msg: string) => void = () => {
@@ -71,28 +71,26 @@ export class ProsperMemory implements MemoryParameters {
   }
 
   input(stimulus: Stimulus, nodeFactory: NodeFactory): void {
-    const t = ++this.time
     let node = stimulus
     if (!this.graph.hasNode(node.id)) {
-      this.addNode(node, t)
+      this.addNode(node)
       for (const latestId of this.latestNodes) {
-        this.link(latestId, node.id, t)
+        this.link(latestId, node.id, this.strength(latestId))
       }
     } else {
       this.log(`Node ${node.id} already exists`)
-      this.graph.updateNodeAttribute(node.id, "times", times => [...(times ?? []), t])
       for (const latestId of this.latestNodes) {
+        const strength = this.strength(latestId)
         const crossed = this.graph.hasEdge(ProsperMemory.edgeId(latestId, node.id))
-        this.link(latestId, node.id, t)
+        this.link(latestId, node.id, strength)
         if (crossed) {
           const conceptNode = nodeFactory.merge(this.stimulus(latestId), node)
           if (!this.graph.hasNode(conceptNode.id)) {
             this.log(`Concept ${conceptNode.id} emerged`)
-            this.addNode(conceptNode, t)
-          } else {
-            this.graph.updateNodeAttribute(conceptNode.id, "times", times => [...(times ?? []), t])
+            this.addNode(conceptNode)
           }
-          this.link(node.id, conceptNode.id, t)
+          // The concept emerges as strongly as the context that made it emerge.
+          this.link(node.id, conceptNode.id, strength)
           node = conceptNode
         }
       }
@@ -103,7 +101,7 @@ export class ProsperMemory implements MemoryParameters {
       this.perceive(node.id)
     }
     this.decay()
-    this.log(`t=${t} latestNodes=${this.nodesString(this.latestNodes)}`)
+    this.log(`latestNodes=${this.nodesString(this.latestNodes)}`)
   }
 
   /**
@@ -112,7 +110,7 @@ export class ProsperMemory implements MemoryParameters {
   predict(): Prediction[] {
     const scores = new Map<string, number>()
     for (const source of this.latestNodes) {
-      const activation = this.graph.getNodeAttribute(source, "size") - this.activatedMin
+      const activation = this.strength(source)
       const outWeight = this.outWeight(source)
       this.graph.forEachOutEdge(source, (_edge, attrs, _source, target) => {
         scores.set(target, (scores.get(target) ?? 0) + activation * attrs.weight / outWeight)
@@ -124,26 +122,9 @@ export class ProsperMemory implements MemoryParameters {
       .sort((a, b) => b.score - a.score)
   }
 
-  /**
-   * @return The ids of the (non-concept) input nodes, in the order they were input.
-   */
-  stimuli(): string[] {
-    const occurrences: Array<[number, string]> = []
-    this.graph.forEachNode((id, attrs) => {
-      if (!attrs.concept) {
-        attrs.times.forEach(t => occurrences.push([t, id]))
-      }
-    })
-    if (occurrences.length === 0) {  // No times (legacy memory): use creation order
-      return this.graph.filterNodes((_node, attrs) => !attrs.concept)
-    }
-    return occurrences.sort((a, b) => a[0] - b[0]).map(([, id]) => id)
-  }
-
   reset(): void {
     this.graph.clear()
     this.latestNodes = []
-    this.time = 0
   }
 
   toJSON(): MemoryState {
@@ -153,13 +134,11 @@ export class ProsperMemory implements MemoryParameters {
   fromJSON(data: MemoryState | LegacyState): void {
     this.reset()
     this.graph.import(ProsperMemory.isLegacy(data) ? ProsperMemory.fromLegacy(data) : data)
-    this.graph.updateEachNodeAttributes((_node, attrs) => ({...attrs, times: attrs.times ?? []}))
-    this.graph.updateEachEdgeAttributes((_edge, attrs) => ({
-      ...attrs,
-      weight: attrs.weight ?? 1,
-      times: attrs.times ?? []
+    // Keep only known attributes (older saves had edge creation orders, labels or times).
+    this.graph.updateEachNodeAttributes((_node, attrs) => ({
+      label: attrs.label, size: attrs.size ?? 1, concept: Boolean(attrs.concept), x: attrs.x, y: attrs.y
     }))
-    this.graph.forEachNode((_node, attrs) => this.time = Math.max(this.time, ...attrs.times))
+    this.graph.updateEachEdgeAttributes((_edge, attrs) => ({weight: attrs.weight ?? 1}))
     this.latestNodes = this.graph.filterNodes((_node, attrs) => attrs.size > this.activatedMin)
   }
 
@@ -174,20 +153,23 @@ export class ProsperMemory implements MemoryParameters {
       attributes: {},
       nodes: data.nodes.map(n => ({
         key: n.id,
-        attributes: {label: n.label ?? n.id, size: n.size ?? 1, concept: Boolean(n.concept), times: [], x: n.x, y: n.y}
+        attributes: {label: n.label ?? n.id, size: n.size ?? 1, concept: Boolean(n.concept), x: n.x, y: n.y}
       })),
-      edges: (data.edges ?? []).map((e, i) => ({
-        key: e.id,
-        source: e.source,
-        target: e.target,
-        attributes: {order: i + 1, weight: 1, times: []}
-      }))
+      edges: (data.edges ?? []).map(e => ({key: e.id, source: e.source, target: e.target, attributes: {weight: 1}}))
     }
   }
 
   private stimulus(id: string): Stimulus {
     const {label, concept} = this.graph.getNodeAttributes(id)
     return {id, label, concept}
+  }
+
+  /**
+   * How much a node is active above the activity threshold. As activation decays at each tick, this is also how
+   * recent the node is.
+   */
+  private strength(id: string): number {
+    return Math.max(this.graph.getNodeAttribute(id, "size") - this.activatedMin, 0)
   }
 
   /**
@@ -227,6 +209,9 @@ export class ProsperMemory implements MemoryParameters {
     this.log(`nodes after activation of ${id}=${this.nodesString(this.graph.nodes())}`)
   }
 
+  /**
+   * A tick: every node loses some activation.
+   */
   private decay(): void {
     this.latestNodes = []
     this.graph.forEachNode((id, attrs) => {
@@ -246,20 +231,23 @@ export class ProsperMemory implements MemoryParameters {
     return this.graph.reduceEdges(id, (sum, _edge, attrs) => sum + attrs.weight, 0)
   }
 
-  private addNode(node: Stimulus, t: number): void {
+  private addNode(node: Stimulus): void {
     this.log(`Adding node ${node.id}`)
-    this.graph.addNode(node.id, {label: node.label, size: 1, concept: node.concept, times: [t]})
+    this.graph.addNode(node.id, {label: node.label, size: 1, concept: node.concept})
   }
 
   /**
-   * Creates a link, or reinforces it if it already exists.
+   * Creates a link, or reinforces it if it already exists, by the given strength.
    */
-  private link(source: string, target: string, t: number): void {
+  private link(source: string, target: string, strength: number): void {
+    if (strength <= 0) {
+      return
+    }
     const id = ProsperMemory.edgeId(source, target)
     if (this.graph.hasEdge(id)) {
-      this.graph.updateEdgeAttributes(id, attrs => ({...attrs, weight: attrs.weight + 1, times: [...attrs.times, t]}))
+      this.graph.updateEdgeAttribute(id, "weight", weight => (weight ?? 0) + strength)
     } else {
-      this.graph.addEdgeWithKey(id, source, target, {order: this.graph.size + 1, weight: 1, times: [t]})
+      this.graph.addEdgeWithKey(id, source, target, {weight: strength})
     }
   }
 

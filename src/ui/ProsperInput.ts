@@ -35,7 +35,7 @@ const css = `
     display: block;
     overflow: auto;
     padding: 1em;
-    background: var(--prosper-input-bg, whitesmoke);
+    background: var(--prosper-input-bg);
   }
   h1 {
     margin-top: 0;
@@ -50,7 +50,7 @@ const css = `
     gap: 0.4em 0.6em;
     align-items: center;
     margin-bottom: 1em;
-    border: 1px solid #ccc;
+    border: 1px solid var(--prosper-border);
     border-radius: 0.3em;
   }
   .row {
@@ -219,7 +219,7 @@ export class ProsperInput extends HTMLElement {
       return
     }
     const factory = this.sampleChoice.nodeFactory
-    const inputs = prosper.memory.stimuli().map(id => factory.create(id))
+    const inputs = prosper.stimuli().map(id => factory.create(id))
     this.stopAll()
     prosper.reset()
     this.iterate(inputs)

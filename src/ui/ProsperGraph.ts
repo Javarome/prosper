@@ -7,20 +7,46 @@ const css = `
   :host {
     display: block;
     position: relative;
-    background: var(--prosper-graph-bg, white);
+    background: var(--prosper-graph-bg);
   }
   .sigma {
     position: absolute;
     inset: 0;
   }
+  .probe {
+    display: none;
+  }
 `
+
+/** Graph colors, as CSS custom properties (see theme.css). */
+const THEME_VARIABLES = {
+  node: "--prosper-node",
+  concept: "--prosper-concept",
+  edge: "--prosper-edge",
+  edgeHover: "--prosper-edge-hover",
+  label: "--prosper-label",
+  edgeLabel: "--prosper-edge-label",
+  labelBackdrop: "--prosper-label-backdrop"
+} as const
+
+type Theme = Record<keyof typeof THEME_VARIABLES, string>
 
 /**
  * Displays the Prosper memory graph, using sigma.js and a ForceAtlas2 layout.
  */
 export class ProsperGraph extends HTMLElement {
   private _prosper?: Prosper
-  private sigma?: { kill(): void }
+  private sigma?: { kill(): void, refresh(): void }
+  /** Current graph colors, resolved from the CSS theme for the WebGL renderer. */
+  private theme: Theme = {
+    node: "steelblue", concept: "#3cb371", edge: "lightblue", edgeHover: "red",
+    label: "black", edgeLabel: "gray", labelBackdrop: "white"
+  }
+  private readonly colorScheme = matchMedia("(prefers-color-scheme: dark)")
+  private readonly onColorSchemeChange = () => {
+    this.readTheme()
+    this.sigma?.refresh()
+  }
   private layout?: FA2Layout
   private layoutTimer?: ReturnType<typeof setTimeout>
   private unsubscribes: Array<() => void> = []
@@ -28,7 +54,7 @@ export class ProsperGraph extends HTMLElement {
   constructor() {
     super()
     const root = this.attachShadow({mode: "open"})
-    root.innerHTML = `<style>${css}</style><div class="sigma"></div>`
+    root.innerHTML = `<style>${css}</style><div class="sigma"></div><span class="probe"></span>`
   }
 
   set prosper(prosper: Prosper) {
@@ -63,8 +89,26 @@ export class ProsperGraph extends HTMLElement {
     this.layoutTimer = setTimeout(() => this.layout?.stop(), delay)
   }
 
+  /**
+   * Resolves the theme colors. Custom properties holding light-dark() are not resolved when read directly, so they
+   * are applied to a probe element, whose computed color is resolved for the current color scheme.
+   */
+  private readTheme(): void {
+    const probe = this.shadowRoot!.querySelector<HTMLElement>(".probe")!
+    for (const [key, variable] of Object.entries(THEME_VARIABLES) as Array<[keyof Theme, string]>) {
+      probe.style.color = `var(${variable})`
+      const color = getComputedStyle(probe).color
+      if (color) {
+        this.theme[key] = color
+      }
+    }
+  }
+
   private init(): void {
     this.dispose()
+    this.readTheme()
+    this.colorScheme.addEventListener("change", this.onColorSchemeChange)
+    const theme = this.theme
     const prosper = this._prosper!
     const graph = prosper.memory.graph
     const container = this.shadowRoot!.querySelector<HTMLElement>(".sigma")!
@@ -91,18 +135,20 @@ export class ProsperGraph extends HTMLElement {
       styles: {
         nodes: [DEFAULT_STYLES.nodes, {
           size: (attrs) => Math.min(4 + ((attrs.size as number ?? 1) - 0.5) * 8, 24),
-          color: {whenData: {concept: true}, then: "#3cb371", else: "steelblue"},
+          color: (attrs) => attrs.concept ? theme.concept : theme.node,
+          labelColor: () => theme.label,
+          backdropColor: () => theme.labelBackdrop,
           labelVisibility: "visible"
         }],
         edges: [DEFAULT_STYLES.edges, {
-          color: {whenState: "isHovered", then: "red", else: "lightblue"},
-          size: (attrs) => 1 + Math.log2(attrs.weight as number ?? 1) * 1.5,
-          label: (attrs) => ((attrs.times as number[] | undefined) ?? []).map(t => `t${t}`).join(" "),
+          color: (_attrs, state) => state.isHovered ? theme.edgeHover : theme.edge,
+          size: (attrs) => Math.min(1 + (attrs.weight as number ?? 1) * 4, 8),
+          label: (attrs) => (attrs.weight as number ?? 0).toFixed(2),
           head: "arrow",
           path: "straight",
           parallelPath: "curved",
           selfLoopPath: "loop",
-          labelColor: "gray",
+          labelColor: () => theme.edgeLabel,
           labelVisibility: "visible"
         }]
       },
@@ -126,6 +172,7 @@ export class ProsperGraph extends HTMLElement {
   }
 
   private dispose(): void {
+    this.colorScheme.removeEventListener("change", this.onColorSchemeChange)
     clearTimeout(this.layoutTimer)
     this.unsubscribes.forEach(unsubscribe => unsubscribe())
     this.unsubscribes = []
