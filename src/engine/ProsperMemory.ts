@@ -15,7 +15,7 @@ export interface MemoryParameters {
   deactivationLoss: number
   /** Activation above which a node is considered as currently active ("latest"). */
   activatedMin: number
-  /** Ratio of its received activation that a node passes to its neighbors (0 disables spreading). */
+  /** Ratio of its received activation that a node passes to its successors (0 disables spreading). */
   spreadRatio: number
   /** How many links away activation spreads from an input node. */
   spreadDepth: number
@@ -46,7 +46,9 @@ interface LegacyState {
  * the strongest, whereas older context still links, but more weakly.
  *
  * - Crossing a link again reinforces it, and makes a concept emerge from its two ends.
- * - Activating a node spreads part of its activation to its neighbors, proportionally to the links weights.
+ * - Activating a node spreads part of its activation to its successors (what followed it), proportionally to the
+ *   links weights. Activation follows the direction of memorized events, so it anticipates and never flows back to
+ *   older context (which would make it look more recent than it is).
  * - Predictions are the successors of active nodes, weighted by the activation of their source and the link weight.
  */
 export class ProsperMemory implements MemoryParameters {
@@ -60,6 +62,12 @@ export class ProsperMemory implements MemoryParameters {
   /** Ids of the currently active nodes. */
   latestNodes: string[] = []
 
+  /**
+   * Ids of the nodes perceived at the current tick (the stimulus, and the concept that may have emerged from it).
+   * This is the present sensation, replaced at each input, not a time marker.
+   */
+  present: string[] = []
+
   readonly graph: MemoryGraph = new DirectedGraph<NodeAttributes, EdgeAttributes>()
 
   constructor(private readonly logger: (msg: string) => void = () => {
@@ -72,27 +80,28 @@ export class ProsperMemory implements MemoryParameters {
 
   input(stimulus: Stimulus, nodeFactory: NodeFactory): void {
     let node = stimulus
-    if (!this.graph.hasNode(node.id)) {
-      this.addNode(node)
-      for (const latestId of this.latestNodes) {
-        this.link(latestId, node.id, this.strength(latestId))
+    const previous = new Set(this.present)
+    if (!this.graph.hasNode(stimulus.id)) {
+      this.addNode(stimulus)
+    }
+    for (const latestId of this.latestNodes) {
+      if (latestId === stimulus.id && !previous.has(latestId)) {
+        // Still active from an older perception: "how … how" is not "how how", which was never perceived.
+        continue
       }
-    } else {
-      this.log(`Node ${node.id} already exists`)
-      for (const latestId of this.latestNodes) {
-        const strength = this.strength(latestId)
-        const crossed = this.graph.hasEdge(ProsperMemory.edgeId(latestId, node.id))
-        this.link(latestId, node.id, strength)
-        if (crossed) {
-          const conceptNode = nodeFactory.merge(this.stimulus(latestId), node)
-          if (!this.graph.hasNode(conceptNode.id)) {
-            this.log(`Concept ${conceptNode.id} emerged`)
-            this.addNode(conceptNode)
-          }
-          // The concept emerges as strongly as the context that made it emerge.
-          this.link(node.id, conceptNode.id, strength)
-          node = conceptNode
+      // Each active node is followed by the perceived stimulus: that is what was experienced.
+      const strength = this.strength(latestId)
+      const crossed = this.graph.hasEdge(ProsperMemory.edgeId(latestId, stimulus.id))
+      this.link(latestId, stimulus.id, strength)
+      if (crossed) {
+        const conceptNode = nodeFactory.merge(this.stimulus(latestId), node)
+        if (!this.graph.hasNode(conceptNode.id)) {
+          this.log(`Concept ${conceptNode.id} emerged`)
+          this.addNode(conceptNode)
         }
+        // The concept emerges as strongly as the context that made it emerge.
+        this.link(node.id, conceptNode.id, strength)
+        node = conceptNode
       }
     }
     // The perceived stimulus is active, and so is the concept that may have emerged from it.
@@ -100,6 +109,7 @@ export class ProsperMemory implements MemoryParameters {
     if (node.id !== stimulus.id) {
       this.perceive(node.id)
     }
+    this.present = node.id !== stimulus.id ? [stimulus.id, node.id] : [stimulus.id]
     this.decay()
     this.log(`latestNodes=${this.nodesString(this.latestNodes)}`)
   }
@@ -109,10 +119,15 @@ export class ProsperMemory implements MemoryParameters {
    */
   predict(): Prediction[] {
     const scores = new Map<string, number>()
+    const present = new Set(this.present)
     for (const source of this.latestNodes) {
       const activation = this.strength(source)
       const outWeight = this.outWeight(source)
       this.graph.forEachOutEdge(source, (_edge, attrs, _source, target) => {
+        if (present.has(target) && !present.has(source)) {
+          // What was just perceived is already present: older context cannot anticipate it anymore.
+          return
+        }
         scores.set(target, (scores.get(target) ?? 0) + activation * attrs.weight / outWeight)
       })
     }
@@ -125,6 +140,7 @@ export class ProsperMemory implements MemoryParameters {
   reset(): void {
     this.graph.clear()
     this.latestNodes = []
+    this.present = []
   }
 
   toJSON(): MemoryState {
@@ -182,7 +198,7 @@ export class ProsperMemory implements MemoryParameters {
   }
 
   /**
-   * Adds activation to a node, and spreads part of it to its neighbors, proportionally to the links weights.
+   * Adds activation to a node, and spreads part of it to its successors, proportionally to the links weights.
    */
   private activate(id: string, amount: number): void {
     let wave = new Map<string, number>([[id, amount]])
@@ -193,14 +209,13 @@ export class ProsperMemory implements MemoryParameters {
         this.graph.updateNodeAttribute(nodeId, "size", size => (size ?? 1) + received)
         reached.add(nodeId)
         const spread = received * this.spreadRatio
-        const weight = this.totalWeight(nodeId)
+        const weight = this.outWeight(nodeId)
         if (spread <= 0 || weight <= 0) {
           continue
         }
-        this.graph.forEachEdge(nodeId, (_edge, attrs, source, target) => {
-          const neighbor = source === nodeId ? target : source
-          if (!reached.has(neighbor) && !wave.has(neighbor)) {
-            next.set(neighbor, (next.get(neighbor) ?? 0) + spread * attrs.weight / weight)
+        this.graph.forEachOutEdge(nodeId, (_edge, attrs, _source, successor) => {
+          if (!reached.has(successor) && !wave.has(successor)) {
+            next.set(successor, (next.get(successor) ?? 0) + spread * attrs.weight / weight)
           }
         })
       }
@@ -225,10 +240,6 @@ export class ProsperMemory implements MemoryParameters {
 
   private outWeight(id: string): number {
     return this.graph.reduceOutEdges(id, (sum, _edge, attrs) => sum + attrs.weight, 0)
-  }
-
-  private totalWeight(id: string): number {
-    return this.graph.reduceEdges(id, (sum, _edge, attrs) => sum + attrs.weight, 0)
   }
 
   private addNode(node: Stimulus): void {

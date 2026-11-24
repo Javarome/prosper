@@ -61,6 +61,20 @@ describe("ProsperMemory", () => {
       .toBeGreaterThan(memory.graph.getEdgeAttribute("a-c", "weight"))
   })
 
+  it("links a node to itself only if it was just perceived", () => {
+    const chars = new ProsperMemory()
+    learn(chars, "hello")
+    expect(chars.graph.hasEdge("l-l")).toBe(true)
+
+    const repeated = new ProsperMemory()
+    learnWords(repeated, "how how")
+    expect(repeated.graph.hasEdge("how-how")).toBe(true)
+
+    const separated = new ProsperMemory()
+    learnWords(separated, "hello how are you hi how")
+    expect(separated.graph.hasEdge("how-how")).toBe(false)
+  })
+
   it("makes a concept emerge from an already-crossed link", () => {
     const memory = new ProsperMemory()
     learn(memory, "abab")
@@ -68,15 +82,32 @@ describe("ProsperMemory", () => {
     expect(concepts.length).toBeGreaterThan(0)
   })
 
-  it("spreads activation to neighbors, proportionally to links weights", () => {
+  it("spreads activation to successors only", () => {
     const memory = new ProsperMemory()
-    learnWords(memory, "hello how are you")
-    const before = memory.graph.getNodeAttribute("how", "size")
-    memory.spreadRatio = 0
+    learnWords(memory, "hello how are you hello")
     const isolated = new ProsperMemory()
     isolated.spreadRatio = 0
-    learnWords(isolated, "hello how are you")
-    expect(before).toBeGreaterThan(isolated.graph.getNodeAttribute("how", "size"))
+    learnWords(isolated, "hello how are you hello")
+    // "hello" anticipates "how"…
+    expect(memory.graph.getNodeAttribute("how", "size"))
+      .toBeGreaterThan(isolated.graph.getNodeAttribute("how", "size"))
+  })
+
+  it("does not spread activation back to predecessors", () => {
+    const memory = new ProsperMemory()
+    learn(memory, "xyz")
+    const isolated = new ProsperMemory()
+    isolated.spreadRatio = 0
+    learn(isolated, "xyz")
+    expect(memory.graph.getNodeAttribute("x", "size")).toBeCloseTo(isolated.graph.getNodeAttribute("x", "size"))
+    expect(memory.graph.getNodeAttribute("y", "size")).toBeCloseTo(isolated.graph.getNodeAttribute("y", "size"))
+  })
+
+  it("keeps the most recently perceived node as the most active one", () => {
+    const memory = new ProsperMemory()
+    learn(memory, "hel")
+    const sizes = memory.latestNodes.map(id => memory.graph.getNodeAttribute(id, "size"))
+    expect(memory.graph.getNodeAttribute("l", "size")).toBe(Math.max(...sizes))
   })
 
   it("does not spread when the spread ratio is 0", () => {
@@ -89,13 +120,19 @@ describe("ProsperMemory", () => {
 
   it("predicts the successors of active nodes, most likely first", () => {
     const memory = new ProsperMemory()
-    learn(memory, "ab")
+    learn(memory, "abca")
     const predictions = memory.predict()
     expect(predictions.map(p => p.id)).toContain("b")
     expect(predictions.reduce((sum, p) => sum + p.score, 0)).toBeCloseTo(1)
     for (let i = 1; i < predictions.length; i++) {
       expect(predictions[i - 1].score).toBeGreaterThanOrEqual(predictions[i].score)
     }
+  })
+
+  it("does not predict what was just perceived from older context", () => {
+    const memory = new ProsperMemory()
+    learnWords(memory, "hello how are you hello how")
+    expect(memory.predict()[0]?.id).toBe("are")
   })
 
   it("favors the most reinforced path", () => {
@@ -158,11 +195,12 @@ describe("Prosper", () => {
     prosper.on("stimulus", e => events.push("in:" + e.detail.id))
     prosper.on("prediction", e => events.push("out:" + e.detail.map(p => p.id).join("")))
     const iterator = new ManualIterator(prosper, factory)
-    iterator.iterate("ab".split("").map(c => factory.create(c)))
+    iterator.iterate("aba".split("").map(c => factory.create(c)))
+    iterator.next()
     expect(iterator.hasNext).toBe(true)
     iterator.next()
     expect(iterator.hasNext).toBe(false)
-    expect(events).toEqual(["in:a", "out:", "in:b", "out:b"])
+    expect(events).toEqual(["in:a", "out:", "in:b", "out:", "in:a", "out:b"])
   })
 
   it("records inputs to replay them in their input order", () => {

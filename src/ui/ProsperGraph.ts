@@ -143,7 +143,8 @@ export class ProsperGraph extends HTMLElement {
         edges: [DEFAULT_STYLES.edges, {
           color: (_attrs, state) => state.isHovered ? theme.edgeHover : theme.edge,
           // The link weight shows as its thickness; its value only when hovered.
-          size: (attrs) => Math.min(0.5 + (attrs.weight as number ?? 1) * 8, 10),
+          // At least 1px, so that arrows (5 times the thickness) stay visible.
+          size: (attrs) => Math.min(1 + (attrs.weight as number ?? 1) * 5, 5),
           label: (attrs) => (attrs.weight as number ?? 0).toFixed(2),
           head: "arrow",
           path: "straight",
