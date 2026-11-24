@@ -21,11 +21,13 @@ const SAMPLE_CHOICES: Record<string, SampleChoice> = {
   words: {label: "Words", split: input => input.split(" "), nodeFactory: new WordNodeFactory()}
 }
 
-const PARAMETERS: Array<{ key: keyof MemoryParameters, label: string }> = [
+const PARAMETERS: Array<{ key: keyof MemoryParameters, label: string, step?: number }> = [
   {key: "minNodeSize", label: "Minimum node size"},
   {key: "activationGain", label: "Activation gain"},
   {key: "deactivationLoss", label: "Deactivation loss"},
-  {key: "activatedMin", label: "Activated minimum"}
+  {key: "activatedMin", label: "Activated minimum"},
+  {key: "spreadRatio", label: "Spread ratio", step: 0.1},
+  {key: "spreadDepth", label: "Spread depth", step: 1}
 ]
 
 const css = `
@@ -110,7 +112,7 @@ export class ProsperInput extends HTMLElement {
         <legend>Memory</legend>
         ${PARAMETERS.map(p => `
           <label for="${p.key}">${p.label}</label>
-          <input id="${p.key}" type="number" step="0.1">`).join("")}
+          <input id="${p.key}" type="number" min="0" step="${p.step ?? 0.1}">`).join("")}
         <div class="row">
           <button id="reset" data-needs-memory>Reset</button>
           <button id="replay" data-needs-memory>Replay</button>

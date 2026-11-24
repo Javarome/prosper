@@ -1,4 +1,7 @@
-import type {Prosper} from "../engine"
+import type {Prediction, Prosper} from "../engine"
+
+/** Maximum number of predictions displayed after each input. */
+const MAX_PREDICTIONS = 3
 
 const css = `
   :host {
@@ -80,10 +83,13 @@ export class ProsperOutput extends HTMLElement {
     this.unsubscribes = []
   }
 
-  private output(predictions: string[]): void {
+  private output(predictions: Prediction[]): void {
+    const answer = predictions.slice(0, MAX_PREDICTIONS)
+      .map(p => `${p.label} (${Math.round(p.score * 100)}%)`)
+      .join(", ")
     this.list.append(
       this.bubble("question", this.latestInput.join(" ")),
-      this.bubble("answer", predictions.join(" ") || "...")
+      this.bubble("answer", answer || "...")
     )
     this.latestInput = []
     this.scrollTop = this.scrollHeight

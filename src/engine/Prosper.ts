@@ -1,12 +1,12 @@
 import {type MemoryParameters, type MemoryState, ProsperMemory} from "./ProsperMemory"
-import type {Stimulus} from "./MemoryNode"
+import type {Prediction, Stimulus} from "./MemoryNode"
 import type {NodeFactory} from "./NodeFactory"
 
 export interface ProsperEventMap {
   /** A stimulus has been input. */
   stimulus: CustomEvent<Stimulus>
   /** Predictions computed after a stimulus. */
-  prediction: CustomEvent<string[]>
+  prediction: CustomEvent<Prediction[]>
   /** Memory has been cleared. */
   reset: Event
   /** Memory has been loaded from a saved state. */
@@ -56,11 +56,27 @@ export class Prosper extends EventTarget implements MemoryParameters {
     this.memory.activatedMin = value
   }
 
+  get spreadRatio() {
+    return this.memory.spreadRatio
+  }
+
+  set spreadRatio(value: number) {
+    this.memory.spreadRatio = value
+  }
+
+  get spreadDepth() {
+    return this.memory.spreadDepth
+  }
+
+  set spreadDepth(value: number) {
+    this.memory.spreadDepth = value
+  }
+
   get empty(): boolean {
     return this.memory.graph.order === 0
   }
 
-  input(stimulus: Stimulus, nodeFactory: NodeFactory): string[] {
+  input(stimulus: Stimulus, nodeFactory: NodeFactory): Prediction[] {
     this.memory.input(stimulus, nodeFactory)
     this.dispatchEvent(new CustomEvent("stimulus", {detail: stimulus}))
     const predictions = this.memory.predict()

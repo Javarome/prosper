@@ -96,7 +96,8 @@ export class ProsperGraph extends HTMLElement {
         }],
         edges: [DEFAULT_STYLES.edges, {
           color: {whenState: "isHovered", then: "red", else: "lightblue"},
-          size: 2,
+          size: (attrs) => 1 + Math.log2(attrs.weight as number ?? 1) * 1.5,
+          label: (attrs) => ((attrs.times as number[] | undefined) ?? []).map(t => `t${t}`).join(" "),
           head: "arrow",
           path: "straight",
           parallelPath: "curved",

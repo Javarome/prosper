@@ -2,9 +2,14 @@
 
 Automate things the way you think about them.
 
-Prosper is an experiment about intelligence emerging from a connected memory: stimuli are memorized as nodes of a
-graph, linked to the nodes that were active when they occurred. Nodes are activated when input and decay over time,
-already-crossed links make concepts emerge, and predictions are the successors of currently active nodes.
+Prosper is an experiment about intelligence emerging from a connected memory:
+
+- stimuli are memorized as nodes of a graph, linked to the nodes that were active when they occurred;
+- each input happens at a memory time, recorded on the input node and on the links crossed to reach it;
+- crossing a link again reinforces it (like a furrow getting deeper), and makes a concept emerge from its two ends;
+- a perceived node is activated, and spreads part of its activation to its neighbors, proportionally to the links
+  weights; all activations decay at each input;
+- predictions are the successors of active nodes, weighted by their activation and by the links weights.
 
 ## Structure
 
