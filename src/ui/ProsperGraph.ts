@@ -36,7 +36,12 @@ type Theme = Record<keyof typeof THEME_VARIABLES, string>
  */
 export class ProsperGraph extends HTMLElement {
   private _prosper?: Prosper
-  private sigma?: { kill(): void, refresh(): void }
+  private sigma?: { kill(): void, refresh(): void, resize(force?: boolean): unknown }
+  /** Keeps the renderer sized to the panel when it is resized. */
+  private readonly resizeObserver = new ResizeObserver(() => {
+    this.sigma?.resize(true)
+    this.sigma?.refresh()
+  })
   /** Current graph colors, resolved from the CSS theme for the WebGL renderer. */
   private theme: Theme = {
     node: "steelblue", concept: "#3cb371", edge: "lightblue", edgeHover: "red",
@@ -162,6 +167,7 @@ export class ProsperGraph extends HTMLElement {
       }
     })
 
+    this.resizeObserver.observe(this)
     this.layout = new FA2Layout(graph, {settings: {gravity: 3, scalingRatio: 30, barnesHutOptimize: false}})
 
     this.unsubscribes.push(
@@ -174,6 +180,7 @@ export class ProsperGraph extends HTMLElement {
   }
 
   private dispose(): void {
+    this.resizeObserver.disconnect()
     this.colorScheme.removeEventListener("change", this.onColorSchemeChange)
     clearTimeout(this.layoutTimer)
     this.unsubscribes.forEach(unsubscribe => unsubscribe())
